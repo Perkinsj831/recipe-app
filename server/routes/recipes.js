@@ -2,9 +2,13 @@ const express = require('express');
 const router = express.Router();
 const Recipe = require('../models/Recipe');
 const { verifyToken } = require('../middleware/authMiddleware');
+const { recompileSchema } = require('../models/User');
 
 // Create new recipe (protected route)
 router.post('/', verifyToken, async (req, res) => {
+  const {error } = recompileSchema.validate(req.body);
+  if (error) return res.status(400).json({ error: error.details[0].message });
+
   const { title, ingredients, instructions } = req.body;
   try {
     const recipe = new Recipe({

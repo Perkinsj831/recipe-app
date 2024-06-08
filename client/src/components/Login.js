@@ -1,42 +1,81 @@
-import React, { useState } from 'react'
-import axios from 'axios'
+import React, { useState } from 'react';
+import axios from 'axios';
+import { Container, TextField, Button, Typography, Alert, IconButton, InputAdornment } from '@mui/material';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 
-const Login = ({ setToken }) => {
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
+const Login = ({ setToken, setIsAdmin }) => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const response = await axios.post("http://localhost:5001/api/auth/login", { username, password });
-            setToken(response.data.token);
-            setError("");
-        } catch(error) {
-            setError("Invalid credentials, please try again.");
-        }
-    };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post('http://localhost:5001/api/auth/login', { username, password });
+      const token = response.data.token;
+      setToken(token);
+      localStorage.setItem('token', token);
 
-    return (
-        <div>
-            {error && <p style={{ color: "red"}}>{error}</p>}
-            <form onSubmit={handleSubmit}>
-                <input
-                    type='text'
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder='Username'
-                    />
-                <input
-                    type='password'
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder='Password'
-                    />
-                    <button type='submit'>Login</button>
-            </form>
-        </div>
-    );
+      const decodedToken = jwtDecode(token);
+      setIsAdmin(decodedToken.isAdmin);
+
+      setError(''); // Clear any previous errors
+      navigate('/'); // Navigate to home page after successful login
+    } catch (error) {
+      setError('Invalid credentials, please try again.');
+    }
+  };
+
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+  return (
+    <Container maxWidth="sm">
+      {error && <Alert severity="error">{error}</Alert>}
+      <form onSubmit={handleSubmit}>
+        <Typography variant="h4" component="h1" gutterBottom>Login</Typography>
+        <TextField
+          label="Username"
+          variant="outlined"
+          fullWidth
+          margin="normal"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <TextField
+          label="Password"
+          type={showPassword ? 'text' : 'password'}
+          variant="outlined"
+          fullWidth
+          margin="normal"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={handleClickShowPassword}
+                  edge="end"
+                >
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+        <Button type="submit" variant="contained" color="primary" fullWidth>Login</Button>
+      </form>
+      <Typography variant="body1" component="p" marginTop={2}>
+        Don't have an account? <a href="/register">Register here</a>
+      </Typography>
+    </Container>
+  );
 };
 
 export default Login;

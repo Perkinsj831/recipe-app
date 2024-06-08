@@ -1,1 +1,52 @@
+/* Import the Pacifico font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
+
+body {
+  background-color: #FFFFFF; /* White background */
+  font-family: 'Georgia, serif'; /* Classic font style */
+}
+
+.MuiAppBar-root {
+  background-color: #B22222; /* FireBrick Red for primary */
+}
+
+.MuiTypography-root {
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+button {
+  background-color: #FFFFFF; /* White */
+  color: #B22222; /* FireBrick Red */
+}
+
+button:hover {
+  background-color: #FFFAFA; /* Snow */
+  color: #000000; /* Black */
+}
+
+a {
+  color: #B22222; /* FireBrick Red for links */
+}
+
+a:hover {
+  color: #000000; /* Black */
+  text-decoration: underline;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.pulsing {
+  animation: pulse 0.3s ease-in-out;
+}
 

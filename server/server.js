@@ -12,11 +12,13 @@ app.use(cors());
 // Import routes
 const authRoutes = require('./routes/auth');
 const recipeRoutes = require('./routes/recipes');
+const profileRoutes = require('./routes/profile'); // Import the profile route
 const { verifyToken } = require('./middleware/authMiddleware');
 
 // Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api/recipes', recipeRoutes);
+app.use('/api/profile', profileRoutes); // Use the profile route
 
 // Protect specific routes with JWT middleware
 app.post('/api/recipes', verifyToken, recipeRoutes);

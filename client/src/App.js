@@ -7,7 +7,9 @@ import RecipeForm from "./components/RecipeForm";
 import NavBar from "./components/NavBar";
 import Profile from "./components/Profile";
 import Admin from "./components/Admin";
-import RecipeCard from "./components/RecipeCard"; // Import the RecipeCard component
+import RecipeCard from "./components/RecipeCard";
+import PasswordResetRequest from "./components/PasswordResetRequest";
+import PasswordReset from "./components/PasswordReset"; // Ensure this import is correct
 import { jwtDecode } from "jwt-decode";
 
 const App = () => {
@@ -26,12 +28,14 @@ const App = () => {
       <NavBar token={token} isAdmin={isAdmin} setToken={setToken} />
       <Routes>
         <Route path="/" element={token ? <RecipeList token={token} /> : <Login setToken={setToken} />} />
-        <Route path="/login" element={<Login setToken={setToken} setIsAdmin={setIsAdmin}/>} />
+        <Route path="/login" element={<Login setToken={setToken} setIsAdmin={setIsAdmin} />} />
         <Route path="/register" element={<Register />} />
         <Route path="/recipes" element={<RecipeForm token={token} />} />
         <Route path="/profile" element={<Profile token={token} />} />
         <Route path="/admin" element={<Admin token={token} />} />
-        <Route path="/recipes/:id" element={<RecipeCard />} /> {/* Add RecipeCard route */}
+        <Route path="/recipes/:id" element={<RecipeCard />} />
+        <Route path="/password-reset-request" element={<PasswordResetRequest />} />
+        <Route path="/reset-password/:token" element={<PasswordReset />} /> {/* Correct path */}
       </Routes>
     </Router>
   );

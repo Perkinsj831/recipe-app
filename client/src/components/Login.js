@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Container, TextField, Button, Typography, Alert, IconButton, InputAdornment } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 
 const Login = ({ setToken, setIsAdmin }) => {
@@ -72,7 +72,10 @@ const Login = ({ setToken, setIsAdmin }) => {
         <Button type="submit" variant="contained" color="primary" fullWidth>Login</Button>
       </form>
       <Typography variant="body1" component="p" marginTop={2}>
-        Don't have an account? <a href="/register">Register here</a>
+        Don't have an account? <Link to="/register">Register here</Link>
+      </Typography>
+      <Typography variant="body2" component="p" marginTop={2}>
+        Forgot your password? <Link to="/password-reset-request">Reset it here</Link>
       </Typography>
     </Container>
   );

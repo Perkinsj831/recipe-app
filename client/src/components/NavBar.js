@@ -29,7 +29,7 @@ const NavBar = ({ token, isAdmin, setToken }) => {
             to="/"
             style={isActive('/') ? { textDecoration: 'underline' } : {}}
           >
-            Recipes
+            Recipes 
           </Button>
           {token ? (
             <>

@@ -27,7 +27,7 @@ const App = () => {
     <Router>
       <NavBar token={token} isAdmin={isAdmin} setToken={setToken} />
       <Routes>
-        <Route path="/" element={token ? <RecipeList token={token} /> : <Login setToken={setToken} />} />
+        <Route path="/" element={token ? <RecipeList token={token} /> : <RecipeList />} />
         <Route path="/login" element={<Login setToken={setToken} setIsAdmin={setIsAdmin} />} />
         <Route path="/register" element={<Register />} />
         <Route path="/recipes" element={<RecipeForm token={token} />} />

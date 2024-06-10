@@ -246,7 +246,7 @@ const RecipeCard = () => {
             <Typography variant="body2" color="text.secondary"><strong>Difficulty Level:</strong> {recipe.difficultyLevel}</Typography>
             <Typography variant="body2" color="text.secondary"><strong>Meal Type:</strong> {recipe.mealType}</Typography>
             <Typography variant="body2" color="text.secondary"><strong>Cooking Method:</strong> {recipe.cookingMethod}</Typography>
-            <Typography variant="body2" color="text.secondary"><strong>Dietary Restrictions:</strong> {recipe.dietaryRestrictions}</Typography>
+            <Typography variant="body2" color="text.secondary"><strong>Dietary Restrictions:</strong> {recipe.dietaryRestrictions.join(", ")}</Typography>
           </Box>
           <Typography variant="h6" component="div" mt={2}>
             Ingredients:

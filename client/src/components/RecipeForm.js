@@ -124,7 +124,7 @@ const RecipeForm = ({ token }) => {
       {error && <Alert severity="error">{error}</Alert>}
       {success && <Alert severity="success">{success}</Alert>}
       <form onSubmit={handleSubmit}>
-        <Typography variant="h4" component="h1" gutterBottom>Add Recipe</Typography>
+        <Typography variant="h4" component="h1" fontFamily={ "Pacifico, cursive"} gutterBottom>Add Recipe</Typography>
         <TextField
           label="Title"
           variant="outlined"
@@ -157,14 +157,22 @@ const RecipeForm = ({ token }) => {
         <Button type="button" variant="contained" color="secondary" fullWidth onClick={addInstruction}>
           Add Step
         </Button>
-        <TextField
-          label="Approximate Time"
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          value={approxTime}
-          onChange={(e) => setApproxTime(e.target.value)}
-        />
+        <FormControl fullWidth margin="normal" variant="outlined">
+          <InputLabel>Approximate Time</InputLabel>
+          <Select
+            value={approxTime}
+            onChange={(e) => setApproxTime(e.target.value)}
+            label="Approximate Time"
+          >
+            <MenuItem value=""><em>None</em></MenuItem>
+            <MenuItem value="0 - 30 minutes">Under 30 minutes</MenuItem>
+            <MenuItem value="30 - 45 minutes">30 minutes - 45 minutes</MenuItem>
+            <MenuItem value="45 - 60 minutes">45 minutes - 60 minutes</MenuItem>
+            <MenuItem value="60 - 90 minutes">1 hour - 1.5 hours</MenuItem>
+            <MenuItem value="90 - 120 minutes">1.5 hours - 2 hours</MenuItem>
+            <MenuItem value="Over 120 Minutes">Over 2 hours</MenuItem>
+          </Select>
+        </FormControl>
         <TextField
           label="Number of Servings"
           type="number"
@@ -283,7 +291,7 @@ const RecipeForm = ({ token }) => {
           </Select>
         </FormControl>
         <TextField
-          label="Calories"
+          label="Calories (per serving)"
           type="number"
           variant="outlined"
           fullWidth

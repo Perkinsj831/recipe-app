@@ -4,6 +4,92 @@ const Recipe = require('../models/Recipe');
 const User = require('../models/User');
 const { verifyToken } = require('../middleware/authMiddleware');
 
+// Helper function for filtering recipes
+const filterRecipes = (recipes, filters) => {
+  const {
+    searchTerm,
+    cuisineType,
+    difficultyLevel,
+    dietaryRestrictions,
+    mealType,
+    cookingMethod,
+    calories,
+    minRating,
+    proteinType,
+    approxTime,
+  } = filters;
+
+  let filteredRecipes = recipes;
+
+  if (searchTerm) {
+    filteredRecipes = filteredRecipes.filter(recipe =>
+      recipe.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      recipe.createdBy.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }
+
+  if (cuisineType) {
+    filteredRecipes = filteredRecipes.filter(recipe =>
+      recipe.cuisineType && recipe.cuisineType.toLowerCase().includes(cuisineType.toLowerCase())
+    );
+  }
+
+  if (difficultyLevel) {
+    filteredRecipes = filteredRecipes.filter(recipe =>
+      recipe.difficultyLevel && recipe.difficultyLevel.toLowerCase().includes(difficultyLevel.toLowerCase())
+    );
+  }
+
+  if (dietaryRestrictions) {
+    filteredRecipes = filteredRecipes.filter(recipe =>
+      recipe.dietaryRestrictions && recipe.dietaryRestrictions.some(restriction =>
+        restriction.toLowerCase().includes(dietaryRestrictions.toLowerCase())
+      )
+    );
+  }
+
+  if (mealType) {
+    filteredRecipes = filteredRecipes.filter(recipe =>
+      recipe.mealType && recipe.mealType.toLowerCase().includes(mealType.toLowerCase())
+    );
+  }
+
+  if (cookingMethod) {
+    filteredRecipes = filteredRecipes.filter(recipe =>
+      recipe.cookingMethod && recipe.cookingMethod.toLowerCase().includes(cookingMethod.toLowerCase())
+    );
+  }
+
+  if (minRating) {
+    filteredRecipes = filteredRecipes.filter(recipe => recipe.averageRating >= parseFloat(minRating));
+  }
+
+  if (proteinType) {
+    filteredRecipes = filteredRecipes.filter(recipe =>
+      recipe.proteinType && recipe.proteinType.toLowerCase().includes(proteinType.toLowerCase())
+    );
+  }
+
+  if (approxTime) {
+    filteredRecipes = filteredRecipes.filter(recipe => recipe.approxTime === approxTime);
+  }
+
+  if (calories) {
+    const caloriesMap = {
+      '100': recipe => recipe.calories < 100,
+      '300': recipe => recipe.calories < 300,
+      '500': recipe => recipe.calories < 500,
+      '1000': recipe => recipe.calories < 1000
+    };
+    const filterFunction = caloriesMap[calories];
+    if (filterFunction) {
+      filteredRecipes = filteredRecipes.filter(filterFunction);
+    }
+  }
+
+  return filteredRecipes;
+};
+
 // Create new recipe (protected route)
 router.post('/', verifyToken, async (req, res) => {
   const { title, ingredients, instructions, approxTime, servings, imageUrl, proteinType, cuisineType, difficultyLevel, dietaryRestrictions, cookingMethod, calories, mealType } = req.body;
@@ -49,62 +135,25 @@ router.get('/search', async (req, res) => {
     cookingMethod,
     calories,
     minRating,
-    proteinType
+    proteinType,
+    approxTime
   } = req.query;
 
   try {
-    let query = {};
+    let recipes = await Recipe.find();
+    recipes = filterRecipes(recipes, {
+      searchTerm,
+      cuisineType,
+      difficultyLevel,
+      dietaryRestrictions,
+      mealType,
+      cookingMethod,
+      calories,
+      minRating,
+      proteinType,
+      approxTime
+    });
 
-    if (searchTerm) {
-      query.$or = [
-        { title: { $regex: searchTerm, $options: 'i' } },
-        { createdBy: { $regex: searchTerm, $options: 'i' } }
-      ];
-    }
-
-    if (cuisineType) {
-      query.cuisineType = { $regex: cuisineType, $options: 'i' };
-    }
-
-    if (difficultyLevel) {
-      query.difficultyLevel = { $regex: difficultyLevel, $options: 'i' };
-    }
-
-    if (dietaryRestrictions) {
-      query.dietaryRestrictions = { $regex: dietaryRestrictions, $options: 'i' };
-    }
-
-    if (mealType) {
-      query.mealType = { $regex: mealType, $options: 'i' };
-    }
-
-    if (cookingMethod) {
-      query.cookingMethod = { $regex: cookingMethod, $options: 'i' };
-    }
-
-    // if (calories) {
-    //   try {
-    //     const [minCalories, maxCalories] = JSON.parse(calories);
-    //     query.$or = [
-    //       { calories: { $gte: minCalories, $lte: maxCalories } },
-    //       { calories: { $exists: false } },
-    //     ];
-    //   } catch (error) {
-    //     return res.status(400).json({ error: 'Invalid calories format' });
-    //   }
-    // }
-
-    if (minRating) {
-      query.averageRating = { $gte: parseFloat(minRating) };
-    }
-
-    if (proteinType) {
-      query.proteinType = { $regex: proteinType, $options: 'i' };
-    }
-
-    console.log('Search query:', query);
-
-    const recipes = await Recipe.find(query);
     res.json({ recipes });
   } catch (error) {
     console.error('Error during search:', error.message);

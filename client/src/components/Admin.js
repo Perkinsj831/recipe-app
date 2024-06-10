@@ -215,7 +215,7 @@ const Admin = ({ token }) => {
                   <strong>Cooking Method:</strong> {selectedRecipe.cookingMethod}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" component="div">
-                  <strong>Dietary Restrictions:</strong> {selectedRecipe.dietaryRestrictions}
+                  <strong>Dietary Restrictions:</strong> {selectedRecipe.dietaryRestrictions.join(", ")}
                 </Typography>
               </Box>
             </DialogContentText>

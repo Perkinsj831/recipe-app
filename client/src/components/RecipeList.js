@@ -44,6 +44,7 @@ import FilterBar from './FilterBar';
 
 const RecipeList = ({ token }) => {
   const [recipes, setRecipes] = useState([]);
+  const [filteredRecipes, setFilteredRecipes] = useState([]);
   const [error, setError] = useState('');
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [savedRecipes, setSavedRecipes] = useState([]);
@@ -54,13 +55,25 @@ const RecipeList = ({ token }) => {
   const [showComments, setShowComments] = useState({});
   const [replyText, setReplyText] = useState('');
   const [showReply, setShowReply] = useState({});
+  const [filters, setFilters] = useState({
+    searchTerm: '',
+    cuisineType: '',
+    difficultyLevel: '',
+    dietaryRestrictions: '',
+    mealType: '',
+    cookingMethod: '',
+    calories: '',
+    minRating: 0,
+    proteinType: '',
+    approxTime: '',
+  });
 
   const userIdFromToken = token ? jwtDecode(token).id : null;
   console.log('User ID from Token:', userIdFromToken); // Debugging statement
 
-  const fetchRecipes = async (params = {}) => {
+  const fetchRecipes = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/recipes/search', { params });
+      const response = await axios.get('http://localhost:5001/api/recipes/search');
       setRecipes(response.data.recipes);
       setError('');
     } catch (error) {
@@ -316,10 +329,61 @@ const RecipeList = ({ token }) => {
     }
   };
 
-  const handleFilter = (filterType, filter) => {
-    const params = { [filterType]: filter };
-    fetchRecipes(params);
+  const handleFilter = (filterName, filterValue) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [filterName]: filterValue,
+    }));
   };
+
+  useEffect(() => {
+    let filtered = recipes;
+
+    if (filters.searchTerm) {
+      filtered = filtered.filter(recipe =>
+        recipe.title.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
+        recipe.createdBy.toLowerCase().includes(filters.searchTerm.toLowerCase())
+      );
+    }
+
+    if (filters.cuisineType) {
+      filtered = filtered.filter(recipe => recipe.cuisineType === filters.cuisineType);
+    }
+
+    if (filters.difficultyLevel) {
+      filtered = filtered.filter(recipe => recipe.difficultyLevel === filters.difficultyLevel);
+    }
+
+    if (filters.dietaryRestrictions) {
+      filtered = filtered.filter(recipe => recipe.dietaryRestrictions.includes(filters.dietaryRestrictions));
+    }
+
+    if (filters.mealType) {
+      filtered = filtered.filter(recipe => recipe.mealType === filters.mealType);
+    }
+
+    if (filters.cookingMethod) {
+      filtered = filtered.filter(recipe => recipe.cookingMethod === filters.cookingMethod);
+    }
+
+    if (filters.calories) {
+      filtered = filtered.filter(recipe => recipe.calories <= parseInt(filters.calories, 10));
+    }
+
+    if (filters.minRating > 0) {
+      filtered = filtered.filter(recipe => recipe.averageRating >= filters.minRating);
+    }
+
+    if (filters.proteinType) {
+      filtered = filtered.filter(recipe => recipe.proteinType === filters.proteinType);
+    }
+
+    if (filters.approxTime) {
+      filtered = filtered.filter(recipe => recipe.approxTime === filters.approxTime);
+    }
+
+    setFilteredRecipes(filtered);
+  }, [filters, recipes]);
 
   return (
     <Container maxWidth="md">
@@ -339,10 +403,10 @@ const RecipeList = ({ token }) => {
         </Typography>
       )}
       <Grid container spacing={4}>
-        {recipes.map((recipe) => (
+        {filteredRecipes.map((recipe) => (
           <Grid item key={recipe._id} xs={12} sm={6} md={4}>
-            <Card>
-              <CardActionArea onClick={() => handleCardClick(recipe)}>
+            <Card style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+              <CardActionArea onClick={() => handleCardClick(recipe)} style={{ flexGrow: 1 }}>
                 {recipe.imageUrl && (
                   <img
                     src={recipe.imageUrl}
@@ -350,7 +414,7 @@ const RecipeList = ({ token }) => {
                     style={{ width: '100%', height: '200px', objectFit: 'cover' }}
                   />
                 )}
-                <CardContent>
+                <CardContent style={{ height: '100%' }}>
                   <Typography variant="h5" component="div">
                     {recipe.title}
                   </Typography>
@@ -365,7 +429,7 @@ const RecipeList = ({ token }) => {
                   </Typography>
                 </CardContent>
               </CardActionArea>
-              <Box display="flex" alignItems="center" mt={2} px={2} pb={2}>
+              <Box display="flex" justifyContent="space-between" alignItems="center" px={2} pb={2}>
                 <Rating
                   name={`recipe-rating-${recipe._id}`}
                   value={recipe.averageRating || 0}
@@ -411,7 +475,7 @@ const RecipeList = ({ token }) => {
             <img
               src={selectedRecipe.imageUrl}
               alt={selectedRecipe.title}
-              style={{ width: '100%', height: 'auto' }}
+              style={{ width: '100%', height: 'auto', maxWidth: '500px', maxHeight: '300px', objectFit: 'contain' }}
             />
             <DialogContentText component="div">
               <Typography variant="h6" component="div">
@@ -461,7 +525,7 @@ const RecipeList = ({ token }) => {
                   <strong>Cooking Method:</strong> {selectedRecipe.cookingMethod}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" component="div">
-                  <strong>Dietary Restrictions:</strong> {selectedRecipe.dietaryRestrictions}
+                  <strong>Dietary Restrictions:</strong> {selectedRecipe.dietaryRestrictions.join(", ")}
                 </Typography>
               </Box>
               <Box display="flex" alignItems="center" mt={2}>

@@ -48,6 +48,8 @@ const CLOUDINARY_UPLOAD_PRESET = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET;
 const Profile = ({ token }) => {
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [uploadedRecipes, setUploadedRecipes] = useState([]);
+  const [filteredSavedRecipes, setFilteredSavedRecipes] = useState([]);
+  const [filteredUploadedRecipes, setFilteredUploadedRecipes] = useState([]);
   const [error, setError] = useState('');
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [editRecipe, setEditRecipe] = useState(null);
@@ -58,14 +60,25 @@ const Profile = ({ token }) => {
   const [showComments, setShowComments] = useState({});
   const [replyText, setReplyText] = useState('');
   const [showReply, setShowReply] = useState({});
+  const [filters, setFilters] = useState({
+    searchTerm: '',
+    cuisineType: '',
+    difficultyLevel: '',
+    dietaryRestrictions: '',
+    mealType: '',
+    cookingMethod: '',
+    calories: '',
+    minRating: 0,
+    proteinType: '',
+    approxTime: '',
+  });
 
   const userIdFromToken = token ? jwtDecode(token).id : null;
 
-  const fetchSavedRecipes = async (params = {}) => {
+  const fetchSavedRecipes = async () => {
     try {
       const response = await axios.get('http://localhost:5001/api/profile/saved', {
         headers: { Authorization: `Bearer ${token}` },
-        params,
       });
       setSavedRecipes(response.data.savedRecipes);
       setError('');
@@ -75,11 +88,10 @@ const Profile = ({ token }) => {
     }
   };
 
-  const fetchUploadedRecipes = async (params = {}) => {
+  const fetchUploadedRecipes = async () => {
     try {
       const response = await axios.get('http://localhost:5001/api/profile/uploaded', {
         headers: { Authorization: `Bearer ${token}` },
-        params,
       });
       setUploadedRecipes(response.data.uploadedRecipes);
       setError('');
@@ -95,6 +107,76 @@ const Profile = ({ token }) => {
       fetchUploadedRecipes();
     }
   }, [token]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [filters, savedRecipes, uploadedRecipes]);
+
+  const applyFilters = () => {
+    let filteredSaved = [...savedRecipes];
+    let filteredUploaded = [...uploadedRecipes];
+
+    if (filters.searchTerm) {
+      filteredSaved = filteredSaved.filter(
+        recipe =>
+          recipe.title.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
+          recipe.createdBy.toLowerCase().includes(filters.searchTerm.toLowerCase())
+      );
+      filteredUploaded = filteredUploaded.filter(
+        recipe =>
+          recipe.title.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
+          recipe.createdBy.toLowerCase().includes(filters.searchTerm.toLowerCase())
+      );
+    }
+
+    if (filters.cuisineType) {
+      filteredSaved = filteredSaved.filter(recipe => recipe.cuisineType === filters.cuisineType);
+      filteredUploaded = filteredUploaded.filter(recipe => recipe.cuisineType === filters.cuisineType);
+    }
+
+    if (filters.difficultyLevel) {
+      filteredSaved = filteredSaved.filter(recipe => recipe.difficultyLevel === filters.difficultyLevel);
+      filteredUploaded = filteredUploaded.filter(recipe => recipe.difficultyLevel === filters.difficultyLevel);
+    }
+
+    if (filters.dietaryRestrictions) {
+      filteredSaved = filteredSaved.filter(recipe => recipe.dietaryRestrictions.includes(filters.dietaryRestrictions));
+      filteredUploaded = filteredUploaded.filter(recipe => recipe.dietaryRestrictions.includes(filters.dietaryRestrictions));
+    }
+
+    if (filters.mealType) {
+      filteredSaved = filteredSaved.filter(recipe => recipe.mealType === filters.mealType);
+      filteredUploaded = filteredUploaded.filter(recipe => recipe.mealType === filters.mealType);
+    }
+
+    if (filters.cookingMethod) {
+      filteredSaved = filteredSaved.filter(recipe => recipe.cookingMethod === filters.cookingMethod);
+      filteredUploaded = filteredUploaded.filter(recipe => recipe.cookingMethod === filters.cookingMethod);
+    }
+
+    if (filters.calories) {
+      filteredSaved = filteredSaved.filter(recipe => recipe.calories <= parseInt(filters.calories, 10));
+      filteredUploaded = filteredUploaded.filter(recipe => recipe.calories <= parseInt(filters.calories, 10));
+    }
+
+    if (filters.minRating > 0) {
+      filteredSaved = filteredSaved.filter(recipe => recipe.averageRating >= filters.minRating);
+      filteredUploaded = filteredUploaded.filter(recipe => recipe.averageRating >= filters.minRating);
+    }
+
+    if (filters.proteinType) {
+      filteredSaved = filteredSaved.filter(recipe => recipe.proteinType === filters.proteinType);
+      filteredUploaded = filteredUploaded.filter(recipe => recipe.proteinType === filters.proteinType);
+    }
+
+    if (filters.approxTime) {
+      filteredSaved = filteredSaved.filter(recipe => recipe.approxTime === filters.approxTime);
+      filteredUploaded = filteredUploaded.filter(recipe => recipe.approxTime === filters.approxTime);
+    }
+
+    setFilteredSavedRecipes(filteredSaved);
+    setFilteredUploadedRecipes(filteredUploaded);
+  };
 
   const fetchComments = async (recipeId) => {
     try {
@@ -166,6 +248,11 @@ const Profile = ({ token }) => {
           recipe._id === recipeId ? { ...recipe, averageRating: response.data.averageRating } : recipe
         )
       );
+      setUploadedRecipes((prevUploadedRecipes) =>
+        prevUploadedRecipes.map((recipe) =>
+          recipe._id === recipeId ? { ...recipe, averageRating: response.data.averageRating } : recipe
+        )
+      );
       toast.success('Rating submitted.');
     } catch (error) {
       toast.error('Error submitting rating, please try again.');
@@ -183,10 +270,11 @@ const Profile = ({ token }) => {
     }
   };
 
-  const handleFilter = (filterType, filter) => {
-    const params = { [filterType]: filter };
-    fetchSavedRecipes(params);
-    fetchUploadedRecipes(params);
+  const handleFilter = (filterType, filterValue) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [filterType]: filterValue,
+    }));
   };
 
   const handleEditClick = (recipe) => {
@@ -209,13 +297,13 @@ const Profile = ({ token }) => {
       toast.error('You must be logged in to edit a recipe.');
       return;
     }
-  
+
     let imageUrl = editRecipe.imageUrl; // Use existing imageUrl by default
     if (editRecipe.image) {
       const formData = new FormData();
-      formData.append("file", editRecipe.image);
-      formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET); // Use the environment variable
-  
+      formData.append('file', editRecipe.image);
+      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET); // Use the environment variable
+
       try {
         const response = await axios.post(
           `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
@@ -223,12 +311,12 @@ const Profile = ({ token }) => {
         );
         imageUrl = response.data.secure_url;
       } catch (error) {
-        console.error("Error uploading image to Cloudinary:", error);
-        setError("Error uploading image, please try again.");
+        console.error('Error uploading image to Cloudinary:', error);
+        setError('Error uploading image, please try again.');
         return; // Stop the form submission if the image upload fails
       }
     }
-  
+
     try {
       await axios.put(
         `http://localhost:5001/api/recipes/${editRecipe._id}`,
@@ -368,18 +456,18 @@ const Profile = ({ token }) => {
       </Typography>
       <FilterBar onFilter={handleFilter} />
       {error && <Typography variant="body1" color="error" align="center">{error}</Typography>}
-      <Typography variant="h5" component="h2" gutterBottom>
+      <Typography variant="h4" component="h2" textAlign="center" fontFamily={ "Pacifico, cursive" } gutterBottom sx={{ textDecoration: 'underline', color: '#B22222', marginBottom: '2rem' }}>
         Saved Recipes
       </Typography>
       <Grid container spacing={4}>
-        {savedRecipes.map((recipe) => (
+        {filteredSavedRecipes.map((recipe) => (
           <Grid item key={recipe._id} xs={12} sm={6} md={4}>
-            <Card>
-              <CardActionArea onClick={() => handleCardClick(recipe)}>
+            <Card style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+              <CardActionArea onClick={() => handleCardClick(recipe)} style={{ flexGrow: 1 }}>
                 {recipe.imageUrl && (
                   <img src={recipe.imageUrl} alt={recipe.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
                 )}
-                <CardContent>
+                <CardContent style={{ height: '100%' }}>
                   <Typography variant="h5" component="div">
                     {recipe.title}
                   </Typography>
@@ -388,7 +476,7 @@ const Profile = ({ token }) => {
                   <Typography variant="body2" color="text.secondary"><strong>Created by:</strong> {recipe.createdBy}</Typography>
                 </CardContent>
               </CardActionArea>
-              <Box display="flex" alignItems="center" mt={2} px={2} pb={2}>
+              <Box display="flex" justifyContent="space-between" alignItems="center" px={2} pb={2}>
                 <Rating
                   name={`recipe-rating-${recipe._id}`}
                   value={recipe.averageRating || 0}
@@ -424,18 +512,18 @@ const Profile = ({ token }) => {
           </Grid>
         ))}
       </Grid>
-      <Typography variant="h5" component="h2" gutterBottom style={{ marginTop: '2rem' }}>
+      <Typography variant="h4" component="h2" textAlign="center" fontFamily={ "Pacifico, cursive" } gutterBottom style={{ marginTop: '4rem', textDecoration: 'underline', color: '#B22222', marginBottom: '2rem' }}>
         Your Uploaded Recipes
       </Typography>
       <Grid container spacing={4}>
-        {uploadedRecipes.map((recipe) => (
+        {filteredUploadedRecipes.map((recipe) => (
           <Grid item key={recipe._id} xs={12} sm={6} md={4}>
-            <Card>
-              <CardActionArea onClick={() => handleCardClick(recipe)}>
+            <Card style={{ display: "flex", flexDirection: "column", height: '100%'}}>
+              <CardActionArea onClick={() => handleCardClick(recipe)} style={{ flexGrow: 1 }}>
                 {recipe.imageUrl && (
                   <img src={recipe.imageUrl} alt={recipe.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
                 )}
-                <CardContent>
+                <CardContent style={{ height: '100%'}}>
                   <Typography variant="h5" component="div">
                     {recipe.title}
                   </Typography>
@@ -444,7 +532,7 @@ const Profile = ({ token }) => {
                   <Typography variant="body2" color="text.secondary"><strong>Created by:</strong> {recipe.createdBy}</Typography>
                 </CardContent>
               </CardActionArea>
-              <Box display="flex" alignItems="center" mt={2} px={2} pb={2}>
+              <Box display="flex" justifyContent="space-between" alignItems="center" px={2} pb={2}>
                 <Rating
                   name={`recipe-rating-${recipe._id}`}
                   value={recipe.averageRating || 0}
@@ -490,7 +578,7 @@ const Profile = ({ token }) => {
           <DialogContent>
             <DialogContentText component="div">
               <Box>
-                <img src={selectedRecipe.imageUrl} alt={selectedRecipe.title} style={{ width: '100%', height: 'auto' }} />
+                <img src={selectedRecipe.imageUrl} alt={selectedRecipe.title} style={{ width: '100%', height: 'auto', maxWidth: '500px', maxHeight: '300px', objectFit: 'contain' }} />
                 <Typography variant="h6" component="h2">Ingredients:</Typography>
                 <Typography variant="body1" component="div">{selectedRecipe.ingredients.join(', ')}</Typography>
                 <Typography variant="h6" component="h2" mt={2}>Instructions:</Typography>
@@ -502,16 +590,16 @@ const Profile = ({ token }) => {
                   ))}
                 </Box>
                 <Box mt={2}>
+                  <Typography variant="body2" color="text.secondary" component="div"><strong>Created by:</strong> {selectedRecipe.createdBy}</Typography>
                   <Typography variant="body2" color="text.secondary" component="div"><strong>Approximate Time:</strong> {selectedRecipe.approxTime}</Typography>
                   <Typography variant="body2" color="text.secondary" component="div"><strong>Servings:</strong> {selectedRecipe.servings}</Typography>
-                  <Typography variant="body2" color="text.secondary" component="div"><strong>Created by:</strong> {selectedRecipe.createdBy}</Typography>
+                  <Typography variant="body2" color="text.secondary" component="div"><strong>Calories:</strong> {selectedRecipe.calories}</Typography>
                   <Typography variant="body2" color="text.secondary" component="div"><strong>Protein Type:</strong> {selectedRecipe.proteinType}</Typography>
                   <Typography variant="body2" color="text.secondary" component="div"><strong>Cuisine Type:</strong> {selectedRecipe.cuisineType}</Typography>
                   <Typography variant="body2" color="text.secondary" component="div"><strong>Difficulty Level:</strong> {selectedRecipe.difficultyLevel}</Typography>
                   <Typography variant="body2" color="text.secondary" component="div"><strong>Meal Type:</strong> {selectedRecipe.mealType}</Typography>
-                  <Typography variant="body2" color="text.secondary" component="div"><strong>Dietary Restrictions:</strong> {selectedRecipe.dietaryRestrictions}</Typography>
                   <Typography variant="body2" color="text.secondary" component="div"><strong>Cooking Method:</strong> {selectedRecipe.cookingMethod}</Typography>
-                  <Typography variant="body2" color="text.secondary" component="div"><strong>Calories:</strong> {selectedRecipe.calories}</Typography>
+                  <Typography variant="body2" color="text.secondary" component="div"><strong>Dietary Restrictions:</strong> {selectedRecipe.dietaryRestrictions.join(', ')}</Typography>
                 </Box>
                 <Box display="flex" alignItems="center" mt={2}>
                   <Rating

@@ -1,5 +1,17 @@
 import React, { useState } from 'react';
-import { Box, Button, Grid, MenuItem, TextField, InputAdornment, Typography, Slider, FormControl, InputLabel, Select } from '@mui/material';
+import {
+  Box,
+  Button,
+  Grid,
+  MenuItem,
+  TextField,
+  InputAdornment,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  Slider
+} from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
 
@@ -10,9 +22,10 @@ const FilterBar = ({ onFilter }) => {
   const [dietaryRestrictions, setDietaryRestrictions] = useState('');
   const [mealType, setMealType] = useState('');
   const [cookingMethod, setCookingMethod] = useState('');
-  const [calories, setCalories] = useState([0, 2000]);
+  const [calories, setCalories] = useState('');
   const [minRating, setMinRating] = useState(0);
   const [proteinType, setProteinType] = useState('');
+  const [under30Minutes, setUnder30Minutes] = useState('');
 
   const handleSearch = () => {
     onFilter('searchTerm', searchTerm);
@@ -58,10 +71,14 @@ const FilterBar = ({ onFilter }) => {
     onFilter('proteinType', event.target.value);
   };
 
-  const handleCaloriesChange = (event, newValue) => {
-    const adjustedValue = [2000 - newValue[1], 2000 - newValue[0]];
-    setCalories(adjustedValue);
-    onFilter('calories', JSON.stringify(adjustedValue));
+  const handleCaloriesChange = (event) => {
+    setCalories(event.target.value);
+    onFilter('calories', event.target.value);
+  };
+
+  const handleUnder30MinutesChange = (event) => {
+    setUnder30Minutes(event.target.value);
+    onFilter('approxTime', event.target.value);
   };
 
   const handleRatingChange = (event, newValue) => {
@@ -76,9 +93,10 @@ const FilterBar = ({ onFilter }) => {
     setDietaryRestrictions('');
     setMealType('');
     setCookingMethod('');
-    setCalories([0, 2000]);
+    setCalories('');
     setMinRating(0);
     setProteinType('');
+    setUnder30Minutes('');
     onFilter('clear', true);
   };
 
@@ -198,19 +216,27 @@ const FilterBar = ({ onFilter }) => {
             </Select>
           </FormControl>
         </Grid>
-        {/* <Grid item xs={12}>
-          <Typography gutterBottom>Calories</Typography>
-          <Slider
-            value={calories.map(value => 2000 - value)}
-            onChange={handleCaloriesChange}
-            valueLabelDisplay="auto"
-            aria-labelledby="range-slider"
-            min={0}
-            max={2000}
-            step={10}
-            marks={[{ value: 0, label: '0' }, { value: 2000, label: '2000+' }]}
-          />
-        </Grid> */}
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth variant="outlined">
+            <InputLabel>Calories (per serving)</InputLabel>
+            <Select value={calories} onChange={handleCaloriesChange} label="Calories (per serving)">
+              <MenuItem value=""><em>None</em></MenuItem>
+              <MenuItem value="100">Under 100</MenuItem>
+              <MenuItem value="300">Under 300</MenuItem>
+              <MenuItem value="500">Under 500</MenuItem>
+              <MenuItem value="1000">Under 1000</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth variant="outlined">
+            <InputLabel>Recipes 30 Minutes or Less</InputLabel>
+            <Select value={under30Minutes} onChange={handleUnder30MinutesChange} label="Recipes 30 Minutes or Less">
+              <MenuItem value=""><em>None</em></MenuItem>
+              <MenuItem value="0 - 30 minutes">Under 30 Minutes</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
         <Grid item xs={12}>
           <Typography gutterBottom>Minimum Rating</Typography>
           <Slider

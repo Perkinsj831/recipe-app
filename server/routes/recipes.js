@@ -137,17 +137,35 @@ router.get('/:id', async (req, res) => {
 
 // Update recipe by ID (protected route)
 router.put('/:id', verifyToken, async (req, res) => {
-  const { title, ingredients, instructions, approxTime, servings, proteinType, cuisineType, difficultyLevel, dietaryRestrictions, cookingMethod, calories, mealType } = req.body;
+  const { title, ingredients, instructions, approxTime, servings, imageUrl, proteinType, cuisineType, difficultyLevel, dietaryRestrictions, cookingMethod, calories, mealType } = req.body;
+
+  if (!title || !ingredients || !instructions) {
+    return res.status(400).json({ error: "Title, ingredients, and instructions are required." });
+  }
+
   try {
-    const recipe = await Recipe.findByIdAndUpdate(
-      req.params.id,
-      { title, ingredients, instructions, approxTime, servings, proteinType, cuisineType, difficultyLevel, dietaryRestrictions, cookingMethod, calories, mealType },
-      { new: true }
-    );
+    const recipe = await Recipe.findById(req.params.id);
     if (!recipe) {
       return res.status(404).json({ error: 'Recipe not found' });
     }
-    res.json(recipe);
+
+    // Update recipe fields
+    recipe.title = title;
+    recipe.ingredients = ingredients;
+    recipe.instructions = instructions;
+    recipe.approxTime = approxTime;
+    recipe.servings = servings;
+    recipe.imageUrl = imageUrl;
+    recipe.proteinType = proteinType;
+    recipe.cuisineType = cuisineType;
+    recipe.difficultyLevel = difficultyLevel;
+    recipe.dietaryRestrictions = dietaryRestrictions;
+    recipe.cookingMethod = cookingMethod;
+    recipe.calories = calories;
+    recipe.mealType = mealType;
+
+    await recipe.save();
+    res.json({ message: 'Recipe updated successfully', recipe });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -216,6 +234,152 @@ router.post('/:id/rate', verifyToken, async (req, res) => {
     recipe.averageRating = averageRating;
     await recipe.save();
     res.status(200).json({ message: 'Rating saved successfully', averageRating });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Add comment to recipe (protected route)
+router.post('/:id/comments', verifyToken, async (req, res) => {
+  const { text } = req.body;
+
+  if (!text) {
+    return res.status(400).json({ error: "Comment text is required." });
+  }
+
+  try {
+    const recipe = await Recipe.findById(req.params.id);
+    if (!recipe) {
+      return res.status(404).json({ error: 'Recipe not found' });
+    }
+
+    const user = await User.findById(req.user.id);
+
+    recipe.comments.push({
+      userId: user._id,
+      username: user.username,
+      text,
+      date: new Date()
+    });
+
+    await recipe.save();
+    res.status(201).json({ message: 'Comment added successfully', comments: recipe.comments });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Get comments for a recipe (public route)
+router.get('/:id/comments', async (req, res) => {
+  try {
+    const recipe = await Recipe.findById(req.params.id);
+    if (!recipe) {
+      return res.status(404).json({ error: 'Recipe not found' });
+    }
+    res.json({ comments: recipe.comments });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Add reply to a comment (protected route)
+router.post('/:id/comments/:commentId/replies', verifyToken, async (req, res) => {
+  const { text } = req.body;
+
+  if (!text) {
+    return res.status(400).json({ error: "Reply text is required." });
+  }
+
+  try {
+    const recipe = await Recipe.findById(req.params.id);
+    if (!recipe) {
+      return res.status(404).json({ error: 'Recipe not found' });
+    }
+
+    const comment = recipe.comments.id(req.params.commentId);
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    const user = await User.findById(req.user.id);
+
+    comment.replies.push({
+      userId: user._id,
+      username: user.username,
+      text,
+      date: new Date()
+    });
+
+    await recipe.save();
+    res.status(201).json({ message: 'Reply added successfully', comments: recipe.comments });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Delete a comment (protected route)
+router.delete('/:id/comments/:commentId', verifyToken, async (req, res) => {
+  try {
+    const recipeId = req.params.id;
+    const commentId = req.params.commentId;
+    const userId = req.user.id;
+
+    console.log(`Deleting comment with ID ${commentId} for recipe ${recipeId} by user ${userId}`); // Debugging statement
+
+    const recipe = await Recipe.findById(recipeId);
+    if (!recipe) {
+      console.log('Recipe not found');
+      return res.status(404).json({ error: 'Recipe not found' });
+    }
+
+    const commentIndex = recipe.comments.findIndex(comment => comment.id === commentId);
+    if (commentIndex === -1) {
+      console.log('Comment not found');
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    const comment = recipe.comments[commentIndex];
+    if (comment.userId.toString() !== userId) {
+      console.log('Unauthorized');
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    recipe.comments.splice(commentIndex, 1);
+    await recipe.save();
+
+    res.json({ message: 'Comment deleted successfully', comments: recipe.comments });
+  } catch (error) {
+    console.error('Error deleting comment:', error.message);
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Delete a reply (protected route)
+router.delete('/:id/comments/:commentId/replies/:replyId', verifyToken, async (req, res) => {
+  try {
+    const recipe = await Recipe.findById(req.params.id);
+    if (!recipe) {
+      return res.status(404).json({ error: 'Recipe not found' });
+    }
+
+    const comment = recipe.comments.id(req.params.commentId);
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    const reply = comment.replies.id(req.params.replyId);
+    if (!reply) {
+      return res.status(404).json({ error: 'Reply not found' });
+    }
+
+    // Check if the reply belongs to the user
+    if (reply.userId.toString() !== req.user.id) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    reply.remove();
+    await recipe.save();
+    res.json({ message: 'Reply deleted successfully', comments: recipe.comments });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

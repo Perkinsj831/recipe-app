@@ -10,6 +10,7 @@ const RecipeForm = ({ token }) => {
   const [approxTime, setApproxTime] = useState("");  
   const [servings, setServings] = useState("");      
   const [image, setImage] = useState(null); // State for image file
+  const [imagePreview, setImagePreview] = useState(null); // State for image preview URL
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -21,6 +22,13 @@ const RecipeForm = ({ token }) => {
   const [calories, setCalories] = useState("");
   const [mealType, setMealType] = useState("");
 
+  const CLOUDINARY_CLOUD_NAME = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
+  const CLOUDINARY_UPLOAD_PRESET = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET;
+
+  // Debugging: Check if environment variables are being read correctly
+  console.log('Cloudinary Cloud Name:', CLOUDINARY_CLOUD_NAME);
+  console.log('Cloudinary Upload Preset:', CLOUDINARY_UPLOAD_PRESET);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -28,10 +36,16 @@ const RecipeForm = ({ token }) => {
     if (image) {
       const formData = new FormData();
       formData.append('file', image);
-      formData.append('upload_preset', 'your_upload_preset'); // Cloudinary upload preset
+      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET); // Use the environment variable
 
-      const response = await axios.post('https://api.cloudinary.com/v1_1/your_cloud_name/image/upload', formData);
-      imageUrl = response.data.secure_url;
+      try {
+        const response = await axios.post(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, formData);
+        imageUrl = response.data.secure_url;
+      } catch (error) {
+        console.error('Error uploading image to Cloudinary:', error);
+        setError('Error uploading image, please try again.');
+        return; // Stop the form submission if the image upload fails
+      }
     }
 
     try {
@@ -60,6 +74,7 @@ const RecipeForm = ({ token }) => {
       setApproxTime("");  
       setServings("");    
       setImage(null); // Reset image
+      setImagePreview(null); // Reset image preview
       setProteinType("");
       setCuisineType("");
       setDifficultyLevel("");
@@ -87,7 +102,11 @@ const RecipeForm = ({ token }) => {
   };
 
   const handleImageChange = (e) => {
-    setImage(e.target.files[0]);
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
   };
 
   const handleDietaryRestrictionsChange = (event) => {
@@ -284,6 +303,14 @@ const RecipeForm = ({ token }) => {
             Add Photo
           </Button>
         </label>
+        {imagePreview && (
+          <Box mt={2}>
+            <img src={imagePreview} alt="Preview" style={{ width: '100%', maxHeight: '300px', objectFit: 'cover' }} />
+            <Button variant="contained" color="secondary" fullWidth onClick={() => { setImage(null); setImagePreview(null); }}>
+              Change Photo
+            </Button>
+          </Box>
+        )}
         <Box mt={2}> {/* Add margin-top here */}
           <Button type="submit" variant="contained" color="primary" fullWidth>Add Recipe</Button>
         </Box>

@@ -1,5 +1,20 @@
 const mongoose = require('mongoose');
 
+const CommentSchema = new mongoose.Schema({
+  username: { type: String, required: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  text: { type: String, required: true },
+  date: { type: Date, default: Date.now },
+  replies: [
+    {
+      username: { type: String, required: true },
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+      text: { type: String, required: true },
+      date: { type: Date, default: Date.now }
+    }
+  ]
+});
+
 const RecipeSchema = new mongoose.Schema({
   title: { type: String, required: true },
   ingredients: { type: [String], required: true },
@@ -15,13 +30,14 @@ const RecipeSchema = new mongoose.Schema({
     }
   ],
   averageRating: { type: Number, default: 0 },
-  cuisineType: { type: String }, // New field for cuisine type
-  difficultyLevel: { type: String }, // New field for difficulty level
-  dietaryRestrictions: { type: [String] }, // New field for dietary restrictions
-  cookingMethod: { type: String }, // New field for cooking method
-  calories: { type: Number }, // New field for calories
-  proteinType: { type: String }, // New field for protein type
-  mealType: { type: String }, // New field for meal type
+  cuisineType: { type: String },
+  difficultyLevel: { type: String },
+  dietaryRestrictions: { type: [String] },
+  cookingMethod: { type: String },
+  calories: { type: Number },
+  proteinType: { type: String },
+  mealType: { type: String },
+  comments: [CommentSchema] // Add comments to recipe schema
 });
 
 // Compute the average rating

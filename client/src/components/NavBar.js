@@ -21,6 +21,7 @@ const NavBar = ({ token, isAdmin, setToken }) => {
           <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
             <Typography variant="h5" style={{ fontFamily: 'Pacifico, cursive', fontSize: '1.8rem' }}>
               ReciPeace
+              <img src={`${process.env.PUBLIC_URL}/peaceSign3.png`} alt="Peace Sign" style={{ height: '50px', marginLeft: '10px', verticalAlign: 'middle', backgroundColor: '#B22222' }} />
             </Typography>
           </Box>
           <Button

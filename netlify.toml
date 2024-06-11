@@ -1,6 +1,3 @@
 [build]
   command = "npm run build --prefix client"
   publish = "client/build"
-
-[[plugins]]
-  package = "@netlify/plugin-next-cache"

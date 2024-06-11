@@ -6,7 +6,12 @@ const PORT = process.env.PORT || 5001;
 require('dotenv').config();
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+}));
 
 const authRoutes = require('./routes/auth');
 const recipeRoutes = require('./routes/recipes');

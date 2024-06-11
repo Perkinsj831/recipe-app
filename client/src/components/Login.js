@@ -24,8 +24,8 @@ const Login = ({ setToken, setIsAdmin }) => {
       const decodedToken = jwtDecode(token);
       setIsAdmin(decodedToken.isAdmin);
 
-      setError(''); // Clear any previous errors
-      navigate('/'); // Navigate to home page after successful login
+      setError('');
+      navigate('/');
     } catch (error) {
       setError('Invalid credentials, please try again.');
     }
@@ -41,14 +41,19 @@ const Login = ({ setToken, setIsAdmin }) => {
       <form onSubmit={handleSubmit}>
         <Typography variant="h4" component="h1" gutterBottom>Login</Typography>
         <TextField
+          id="username"
+          name="username"
           label="Username"
           variant="outlined"
           fullWidth
           margin="normal"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          autoComplete='username'
         />
         <TextField
+          id="password"
+          name="password"
           label="Password"
           type={showPassword ? 'text' : 'password'}
           variant="outlined"

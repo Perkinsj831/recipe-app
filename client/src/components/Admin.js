@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import {
   Container,
@@ -28,7 +28,7 @@ const Admin = ({ token }) => {
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [popupOpen, setPopupOpen] = useState(false);
 
-  const fetchRecipes = async (params = {}) => {
+  const fetchRecipes = useCallback(async (params = {}) => {
     try {
       const response = await axios.get("http://localhost:5001/api/recipes/search", {
         headers: { Authorization: `Bearer ${token}` },
@@ -39,11 +39,11 @@ const Admin = ({ token }) => {
     } catch (error) {
       setError("Error fetching recipes, please try again.");
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     fetchRecipes();
-  }, [token]);
+  }, [fetchRecipes]);
 
   const handleDelete = async (id) => {
     try {
@@ -101,6 +101,8 @@ const Admin = ({ token }) => {
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={10}>
             <TextField
+              id="searchTerm"
+              name="searchTerm"
               fullWidth
               placeholder="Search by recipe or creator"
               value={searchTerm}

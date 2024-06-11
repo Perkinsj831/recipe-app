@@ -21,7 +21,11 @@ const NavBar = ({ token, isAdmin, setToken }) => {
           <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
             <Typography variant="h5" style={{ fontFamily: 'Pacifico, cursive', fontSize: '1.8rem' }}>
               ReciPeace
-              <img src={`${process.env.PUBLIC_URL}/peaceSign3.png`} alt="Peace Sign" style={{ height: '50px', marginLeft: '10px', verticalAlign: 'middle', backgroundColor: '#B22222' }} />
+              <img
+                src={`${process.env.PUBLIC_URL}/peaceSign3.png`}
+                alt="Peace Sign"
+                style={{ height: '50px', marginLeft: '10px', verticalAlign: 'middle', backgroundColor: '#B22222' }}
+              />
             </Typography>
           </Box>
           <Button
@@ -29,8 +33,9 @@ const NavBar = ({ token, isAdmin, setToken }) => {
             component={Link}
             to="/"
             style={isActive('/') ? { textDecoration: 'underline' } : {}}
+            name="recipes"
           >
-            Recipes 
+            Recipes
           </Button>
           {token ? (
             <>
@@ -39,6 +44,7 @@ const NavBar = ({ token, isAdmin, setToken }) => {
                 component={Link}
                 to="/recipes"
                 style={isActive('/recipes') ? { textDecoration: 'underline' } : {}}
+                name="addRecipe"
               >
                 Add Recipe
               </Button>
@@ -48,19 +54,21 @@ const NavBar = ({ token, isAdmin, setToken }) => {
                   component={Link}
                   to="/admin"
                   style={isActive('/admin') ? { textDecoration: 'underline' } : {}}
-              >
-                Admin
-              </Button>
+                  name="admin"
+                >
+                  Admin
+                </Button>
               )}
               <Button
                 color="inherit"
                 component={Link}
                 to="/profile"
                 style={isActive('/profile') ? { textDecoration: 'underline' } : {}}
+                name="profile"
               >
                 Profile
               </Button>
-              <Button color="inherit" onClick={handleLogout}>
+              <Button color="inherit" onClick={handleLogout} name="logout">
                 Logout
               </Button>
             </>
@@ -71,6 +79,7 @@ const NavBar = ({ token, isAdmin, setToken }) => {
                 component={Link}
                 to="/login"
                 style={isActive('/login') ? { textDecoration: 'underline' } : {}}
+                name="login"
               >
                 Login
               </Button>
@@ -79,6 +88,7 @@ const NavBar = ({ token, isAdmin, setToken }) => {
                 component={Link}
                 to="/register"
                 style={isActive('/register') ? { textDecoration: 'underline' } : {}}
+                name="register"
               >
                 Register
               </Button>

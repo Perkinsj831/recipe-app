@@ -19,7 +19,7 @@ const RecipeSchema = new mongoose.Schema({
   title: { type: String, required: true },
   ingredients: { type: [String], required: true },
   instructions: { type: [String], required: true },
-  createdBy: { type: String, required: true }, // Store username instead of ObjectId
+  createdBy: { type: String, required: true },
   approxTime: { type: String },
   servings: { type: Number },
   imageUrl: { type: String },
@@ -37,7 +37,7 @@ const RecipeSchema = new mongoose.Schema({
   calories: { type: Number },
   proteinType: { type: String },
   mealType: { type: String },
-  comments: [CommentSchema] // Add comments to recipe schema
+  comments: [CommentSchema]
 });
 
 // Compute the average rating

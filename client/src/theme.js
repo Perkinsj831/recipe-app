@@ -3,22 +3,22 @@ import { createTheme } from '@mui/material/styles';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#B22222', // FireBrick Red for primary
+      main: '#B22222',
     },
     secondary: {
-      main: '#FFFFFF', // White for secondary
+      main: '#FFFFFF',
     },
     background: {
-      default: '#FFFFFF', // White background
-      paper: '#FFFAFA', // Snow for paper background
+      default: '#FFFFFF',
+      paper: '#FFFAFA',
     },
     text: {
-      primary: '#000000', // Black for primary text
-      secondary: '#B22222', // FireBrick Red for secondary text
+      primary: '#000000',
+      secondary: '#B22222',
     },
   },
   typography: {
-    fontFamily: 'Georgia, serif', // Classic font style
+    fontFamily: 'Georgia, serif',
   },
 });
 

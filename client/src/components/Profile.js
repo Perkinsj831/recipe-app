@@ -83,8 +83,8 @@ const Profile = ({ token }) => {
       setSavedRecipes(response.data.savedRecipes);
       setError('');
     } catch (error) {
-      console.error('Error fetching saved recipes:', error.response?.data || error.message);
       setError('Error fetching saved recipes, please try again.');
+      toast.error('Error fetching saved recipes, please try again.');
     }
   };
 
@@ -96,8 +96,8 @@ const Profile = ({ token }) => {
       setUploadedRecipes(response.data.uploadedRecipes);
       setError('');
     } catch (error) {
-      console.error('Error fetching uploaded recipes:', error.response?.data || error.message);
       setError('Error fetching uploaded recipes, please try again.');
+      toast.error('Error fetching uploaded recipes, please try again.');
     }
   };
 
@@ -183,13 +183,13 @@ const Profile = ({ token }) => {
       const response = await axios.get(`http://localhost:5001/api/recipes/${recipeId}/comments`);
       setComments((prevComments) => ({ ...prevComments, [recipeId]: response.data.comments }));
     } catch (error) {
-      console.error('Error fetching comments:', error);
+      toast.error('Error fetching comments:', error);
     }
   };
 
   const handleCardClick = (recipe) => {
     setSelectedRecipe(recipe);
-    fetchComments(recipe._id); // Fetch comments when a recipe is selected
+    fetchComments(recipe._id);
   };
 
   const handleClose = () => {
@@ -214,7 +214,6 @@ const Profile = ({ token }) => {
       setSavedRecipes((prevSavedRecipes) => prevSavedRecipes.filter((recipe) => recipe._id !== recipeId));
       toast.success('Recipe removed from profile.');
     } catch (error) {
-      console.error('Error unsaving recipe:', error);
       toast.error('Error unsaving recipe, please try again.');
     }
   };
@@ -262,11 +261,11 @@ const Profile = ({ token }) => {
   const getShareUrl = (recipeId) => {
     const url = `${window.location.origin}/recipes/${recipeId}`;
     try {
-      new URL(url); // Validate URL
+      new URL(url);
       return url;
     } catch (error) {
-      console.error('Invalid URL:', url);
-      return null; // Handle invalid URL
+      toast.error('Invalid URL:', url);
+      return null;
     }
   };
 
@@ -298,11 +297,11 @@ const Profile = ({ token }) => {
       return;
     }
 
-    let imageUrl = editRecipe.imageUrl; // Use existing imageUrl by default
+    let imageUrl = editRecipe.imageUrl;
     if (editRecipe.image) {
       const formData = new FormData();
       formData.append('file', editRecipe.image);
-      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET); // Use the environment variable
+      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
 
       try {
         const response = await axios.post(
@@ -311,9 +310,9 @@ const Profile = ({ token }) => {
         );
         imageUrl = response.data.secure_url;
       } catch (error) {
-        console.error('Error uploading image to Cloudinary:', error);
+        toast.error('Error uploading image to Cloudinary:', error);
         setError('Error uploading image, please try again.');
-        return; // Stop the form submission if the image upload fails
+        return;
       }
     }
 
@@ -322,7 +321,7 @@ const Profile = ({ token }) => {
         `http://localhost:5001/api/recipes/${editRecipe._id}`,
         {
           ...editRecipe,
-          imageUrl, // Update with new imageUrl if uploaded
+          imageUrl,
         },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -330,9 +329,8 @@ const Profile = ({ token }) => {
       );
       toast.success('Recipe updated successfully.');
       setEditRecipe(null);
-      fetchUploadedRecipes(); // Re-fetch the updated list of uploaded recipes
+      fetchUploadedRecipes();
     } catch (error) {
-      console.error('Error updating recipe:', error);
       toast.error('Error updating recipe, please try again.');
     }
   };
@@ -356,11 +354,10 @@ const Profile = ({ token }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      fetchComments(recipeId); // Refresh comments after adding a new one
+      fetchComments(recipeId);
       setNewComment('');
       setShowComments((prev) => ({ ...prev, [recipeId]: true }));
     } catch (error) {
-      console.error('Error adding comment:', error);
       toast.error('Error adding comment, please try again.');
     }
   };
@@ -392,11 +389,10 @@ const Profile = ({ token }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      fetchComments(recipeId); // Refresh comments after adding a reply
+      fetchComments(recipeId);
       setReplyText('');
       setShowReply((prev) => ({ ...prev, [commentId]: false }));
     } catch (error) {
-      console.error('Error adding reply:', error);
       toast.error('Error adding reply, please try again.');
     }
   };
@@ -414,10 +410,9 @@ const Profile = ({ token }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      fetchComments(recipeId); // Refresh comments after deletion
+      fetchComments(recipeId);
       toast.success('Comment deleted.');
     } catch (error) {
-      console.error('Error deleting comment:', error);
       toast.error('Error deleting comment, please try again.');
     }
   };
@@ -435,10 +430,9 @@ const Profile = ({ token }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      fetchComments(recipeId); // Refresh comments after deletion
+      fetchComments(recipeId);
       toast.success('Reply deleted.');
     } catch (error) {
-      console.error('Error deleting reply:', error);
       toast.error('Error deleting reply, please try again.');
     }
   };
@@ -626,6 +620,8 @@ const Profile = ({ token }) => {
                   <Collapse in={showComments[selectedRecipe._id]}>
                     <Box p={2}>
                       <TextField
+                        id={`comment-${selectedRecipe._id}`}
+                        name="newComment"
                         label="Add a comment"
                         variant="outlined"
                         fullWidth
@@ -681,6 +677,8 @@ const Profile = ({ token }) => {
                             <Collapse in={showReply[comment._id]}>
                               <Box mt={2} ml={4}>
                                 <TextField
+                                  id={`reply-${comment._id}`}
+                                  name="replyText"
                                   label="Add a reply"
                                   variant="outlined"
                                   fullWidth
@@ -749,98 +747,110 @@ const Profile = ({ token }) => {
             <DialogContentText component="div">
               <Box component="form" onSubmit={handleEditSubmit}>
                 <TextField
+                  id="edit-title"
+                  name="title"
                   fullWidth
                   margin="normal"
                   label="Title"
-                  name="title"
                   value={editRecipe.title}
                   onChange={handleEditChange}
                 />
                 <TextField
+                  id="edit-ingredients"
+                  name="ingredients"
                   fullWidth
                   margin="normal"
                   label="Ingredients"
-                  name="ingredients"
                   value={editRecipe.ingredients.join(', ')}
                   onChange={(event) => setEditRecipe({ ...editRecipe, ingredients: event.target.value.split(',').map((item) => item.trim()) })}
                 />
                 <TextField
+                  id="edit-instructions"
+                  name="instructions"
                   fullWidth
                   margin="normal"
                   label="Instructions"
-                  name="instructions"
                   value={editRecipe.instructions.join(', ')}
                   onChange={(event) => setEditRecipe({ ...editRecipe, instructions: event.target.value.split(',').map((item) => item.trim()) })}
                 />
                 <TextField
+                  id="edit-approxTime"
+                  name="approxTime"
                   fullWidth
                   margin="normal"
                   label="Approximate Time"
-                  name="approxTime"
                   value={editRecipe.approxTime}
                   onChange={handleEditChange}
                 />
                 <TextField
+                  id="edit-servings"
+                  name="servings"
                   fullWidth
                   margin="normal"
                   label="Servings"
-                  name="servings"
                   value={editRecipe.servings}
                   onChange={handleEditChange}
                 />
                 <TextField
+                  id="edit-proteinType"
+                  name="proteinType"
                   fullWidth
                   margin="normal"
                   label="Protein Type"
-                  name="proteinType"
                   value={editRecipe.proteinType}
                   onChange={handleEditChange}
                 />
                 <TextField
+                  id="edit-cuisineType"
+                  name="cuisineType"
                   fullWidth
                   margin="normal"
                   label="Cuisine Type"
-                  name="cuisineType"
                   value={editRecipe.cuisineType}
                   onChange={handleEditChange}
                 />
                 <TextField
+                  id="edit-difficultyLevel"
+                  name="difficultyLevel"
                   fullWidth
                   margin="normal"
                   label="Difficulty Level"
-                  name="difficultyLevel"
                   value={editRecipe.difficultyLevel}
                   onChange={handleEditChange}
                 />
                 <TextField
+                  id="edit-dietaryRestrictions"
+                  name="dietaryRestrictions"
                   fullWidth
                   margin="normal"
                   label="Dietary Restrictions"
-                  name="dietaryRestrictions"
                   value={editRecipe.dietaryRestrictions.join(', ')}
                   onChange={(event) => setEditRecipe({ ...editRecipe, dietaryRestrictions: event.target.value.split(',').map((item) => item.trim()) })}
                 />
                 <TextField
+                  id="edit-cookingMethod"
+                  name="cookingMethod"
                   fullWidth
                   margin="normal"
                   label="Cooking Method"
-                  name="cookingMethod"
                   value={editRecipe.cookingMethod}
                   onChange={handleEditChange}
                 />
                 <TextField
+                  id="edit-calories"
+                  name="calories"
                   fullWidth
                   margin="normal"
                   label="Calories"
-                  name="calories"
                   value={editRecipe.calories}
                   onChange={handleEditChange}
                 />
                 <TextField
+                  id="edit-mealType"
+                  name="mealType"
                   fullWidth
                   margin="normal"
                   label="Meal Type"
-                  name="mealType"
                   value={editRecipe.mealType}
                   onChange={handleEditChange}
                 />

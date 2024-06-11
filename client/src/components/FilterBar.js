@@ -97,7 +97,16 @@ const FilterBar = ({ onFilter }) => {
     setMinRating(0);
     setProteinType('');
     setUnder30Minutes('');
-    onFilter('clear', true);
+    onFilter('searchTerm', '');
+    onFilter('cuisineType', '');
+    onFilter('difficultyLevel', '');
+    onFilter('dietaryRestrictions', '');
+    onFilter('mealType', '');
+    onFilter('cookingMethod', '');
+    onFilter('calories', '');
+    onFilter('minRating', 0);
+    onFilter('proteinType', '');
+    onFilter('approxTime', '');
   };
 
   return (
@@ -111,6 +120,8 @@ const FilterBar = ({ onFilter }) => {
             onChange={handleSearchChange}
             onKeyPress={handleKeyPress}
             variant="outlined"
+            id="search-term"
+            name="searchTerm"
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -135,8 +146,15 @@ const FilterBar = ({ onFilter }) => {
         </Grid>
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth variant="outlined">
-            <InputLabel>Cuisine Type</InputLabel>
-            <Select value={cuisineType} onChange={handleCuisineTypeChange} label="Cuisine Type">
+            <InputLabel htmlFor="filter-cuisine-type">Cuisine Type</InputLabel>
+            <Select
+              labelId="cuisine-type-label"
+              id="filter-cuisine-type"
+              value={cuisineType}
+              onChange={handleCuisineTypeChange}
+              label="Cuisine Type"
+              name="cuisineType"
+            >
               <MenuItem value=""><em>None</em></MenuItem>
               <MenuItem value="Italian">Italian</MenuItem>
               <MenuItem value="Mexican">Mexican</MenuItem>
@@ -152,8 +170,15 @@ const FilterBar = ({ onFilter }) => {
         </Grid>
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth variant="outlined">
-            <InputLabel>Difficulty Level</InputLabel>
-            <Select value={difficultyLevel} onChange={handleDifficultyLevelChange} label="Difficulty Level">
+            <InputLabel htmlFor="filter-difficulty-level">Difficulty Level</InputLabel>
+            <Select
+              labelId="difficulty-level-label"
+              id="filter-difficulty-level"
+              value={difficultyLevel}
+              onChange={handleDifficultyLevelChange}
+              label="Difficulty Level"
+              name="difficultyLevel"
+            >
               <MenuItem value=""><em>None</em></MenuItem>
               <MenuItem value="Easy">Easy</MenuItem>
               <MenuItem value="Medium">Medium</MenuItem>
@@ -163,8 +188,15 @@ const FilterBar = ({ onFilter }) => {
         </Grid>
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth variant="outlined">
-            <InputLabel>Dietary Restrictions</InputLabel>
-            <Select value={dietaryRestrictions} onChange={handleDietaryRestrictionsChange} label="Dietary Restrictions">
+            <InputLabel htmlFor="filter-dietary-restrictions">Dietary Restrictions</InputLabel>
+            <Select
+              labelId="dietary-restrictions-label"
+              id="filter-dietary-restrictions"
+              value={dietaryRestrictions}
+              onChange={handleDietaryRestrictionsChange}
+              label="Dietary Restrictions"
+              name="dietaryRestrictions"
+            >
               <MenuItem value=""><em>None</em></MenuItem>
               <MenuItem value="Gluten-Free">Gluten-Free</MenuItem>
               <MenuItem value="Nut-Free">Nut-Free</MenuItem>
@@ -177,8 +209,15 @@ const FilterBar = ({ onFilter }) => {
         </Grid>
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth variant="outlined">
-            <InputLabel>Meal Type</InputLabel>
-            <Select value={mealType} onChange={handleMealTypeChange} label="Meal Type">
+            <InputLabel htmlFor="filter-meal-type">Meal Type</InputLabel>
+            <Select
+              labelId="meal-type-label"
+              id="filter-meal-type"
+              value={mealType}
+              onChange={handleMealTypeChange}
+              label="Meal Type"
+              name="mealType"
+            >
               <MenuItem value=""><em>None</em></MenuItem>
               <MenuItem value="Breakfast">Breakfast</MenuItem>
               <MenuItem value="Lunch">Lunch</MenuItem>
@@ -190,8 +229,15 @@ const FilterBar = ({ onFilter }) => {
         </Grid>
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth variant="outlined">
-            <InputLabel>Cooking Method</InputLabel>
-            <Select value={cookingMethod} onChange={handleCookingMethodChange} label="Cooking Method">
+            <InputLabel htmlFor="filter-cooking-method">Cooking Method</InputLabel>
+            <Select
+              labelId="cooking-method-label"
+              id="filter-cooking-method"
+              value={cookingMethod}
+              onChange={handleCookingMethodChange}
+              label="Cooking Method"
+              name="cookingMethod"
+            >
               <MenuItem value=""><em>None</em></MenuItem>
               <MenuItem value="Baking">Baking</MenuItem>
               <MenuItem value="Grilling">Grilling</MenuItem>
@@ -203,8 +249,15 @@ const FilterBar = ({ onFilter }) => {
         </Grid>
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth variant="outlined">
-            <InputLabel>Protein Type</InputLabel>
-            <Select value={proteinType} onChange={handleProteinTypeChange} label="Protein Type">
+            <InputLabel htmlFor="filter-protein-type">Protein Type</InputLabel>
+            <Select
+              labelId="protein-type-label"
+              id="filter-protein-type"
+              value={proteinType}
+              onChange={handleProteinTypeChange}
+              label="Protein Type"
+              name="proteinType"
+            >
               <MenuItem value=""><em>None</em></MenuItem>
               <MenuItem value="Chicken">Chicken</MenuItem>
               <MenuItem value="Beef">Beef</MenuItem>
@@ -218,8 +271,15 @@ const FilterBar = ({ onFilter }) => {
         </Grid>
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth variant="outlined">
-            <InputLabel>Calories (per serving)</InputLabel>
-            <Select value={calories} onChange={handleCaloriesChange} label="Calories (per serving)">
+            <InputLabel htmlFor="filter-calories-select">Calories (per serving)</InputLabel>
+            <Select
+              labelId="calories-label"
+              id="filter-calories-select"
+              value={calories}
+              onChange={handleCaloriesChange}
+              label="Calories (per serving)"
+              name="calories"
+            >
               <MenuItem value=""><em>None</em></MenuItem>
               <MenuItem value="100">Under 100</MenuItem>
               <MenuItem value="300">Under 300</MenuItem>
@@ -230,8 +290,15 @@ const FilterBar = ({ onFilter }) => {
         </Grid>
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth variant="outlined">
-            <InputLabel>Recipes 30 Minutes or Less</InputLabel>
-            <Select value={under30Minutes} onChange={handleUnder30MinutesChange} label="Recipes 30 Minutes or Less">
+            <InputLabel htmlFor="filter-under-30">Recipes 30 Minutes or Less</InputLabel>
+            <Select
+              labelId="under-30-label"
+              id="filter-under-30"
+              value={under30Minutes}
+              onChange={handleUnder30MinutesChange}
+              label="Recipes 30 Minutes or Less"
+              name="under30Minutes"
+            >
               <MenuItem value=""><em>None</em></MenuItem>
               <MenuItem value="0 - 30 minutes">Under 30 Minutes</MenuItem>
             </Select>
@@ -243,7 +310,9 @@ const FilterBar = ({ onFilter }) => {
             value={minRating}
             onChange={handleRatingChange}
             valueLabelDisplay="auto"
-            aria-labelledby="discrete-slider"
+            aria-labelledby="min-rating-label"
+            id="min-rating"
+            name="minRating"
             min={0}
             max={5}
             step={1}

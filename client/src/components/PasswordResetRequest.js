@@ -1,4 +1,3 @@
-// components/PasswordResetRequest.js
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Container, TextField, Button, Typography, Alert } from '@mui/material';
@@ -33,8 +32,11 @@ const PasswordResetRequest = () => {
           margin="normal"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          name="email"
         />
-        <Button type="submit" variant="contained" color="primary" fullWidth>Send Reset Link</Button>
+        <Button type="submit" variant="contained" color="primary" fullWidth name="sendResetLinkButton">
+          Send Reset Link
+        </Button>
       </form>
     </Container>
   );

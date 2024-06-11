@@ -5,33 +5,27 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 require('dotenv').config();
 
-// Middleware to parse JSON
 app.use(express.json());
 app.use(cors());
 
-// Import routes
 const authRoutes = require('./routes/auth');
 const recipeRoutes = require('./routes/recipes');
 const profileRoutes = require('./routes/profile');
 const { verifyToken } = require('./middleware/authMiddleware');
 
-// Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/profile', profileRoutes);
 
-// Basic route
 app.get('/', (req, res) => {
   res.send('Hello, Recipe App!');
 });
 
-// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send('Something broke!');
 });
 
-// Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('MongoDB connected');

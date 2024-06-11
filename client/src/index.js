@@ -3,9 +3,9 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import { ThemeProvider } from '@mui/material/styles';
-import theme from './theme'; // Import the custom theme
+import theme from './theme';
 import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"; // Corrected typo
+import "react-toastify/dist/ReactToastify.css";
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

@@ -126,7 +126,7 @@ router.post('/reset-password/:token', async (req, res) => {
 
     if (!user) {
       console.error(`Invalid or expired token: ${token}`);
-      console.log(`User document: ${user}`);
+
       return res.status(400).json({ error: 'Password reset token is invalid or has expired.' });
     }
 

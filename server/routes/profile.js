@@ -4,7 +4,6 @@ const User = require('../models/User');
 const Recipe = require('../models/Recipe');
 const { verifyToken } = require('../middleware/authMiddleware');
 
-// Helper function to handle calorie filtering
 const filterByCalories = (recipes, calories) => {
   const caloriesMap = {
     '100': recipe => recipe.calories < 100,
@@ -30,7 +29,7 @@ router.get('/saved', verifyToken, async (req, res) => {
     calories,
     minRating,
     proteinType,
-    approxTime // Add approxTime to the query parameters
+    approxTime
   } = req.query;
 
   try {

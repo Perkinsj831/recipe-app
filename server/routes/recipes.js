@@ -4,92 +4,6 @@ const Recipe = require('../models/Recipe');
 const User = require('../models/User');
 const { verifyToken } = require('../middleware/authMiddleware');
 
-// Helper function for filtering recipes
-const filterRecipes = (recipes, filters) => {
-  const {
-    searchTerm,
-    cuisineType,
-    difficultyLevel,
-    dietaryRestrictions,
-    mealType,
-    cookingMethod,
-    calories,
-    minRating,
-    proteinType,
-    approxTime,
-  } = filters;
-
-  let filteredRecipes = recipes;
-
-  if (searchTerm) {
-    filteredRecipes = filteredRecipes.filter(recipe =>
-      recipe.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      recipe.createdBy.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }
-
-  if (cuisineType) {
-    filteredRecipes = filteredRecipes.filter(recipe =>
-      recipe.cuisineType && recipe.cuisineType.toLowerCase().includes(cuisineType.toLowerCase())
-    );
-  }
-
-  if (difficultyLevel) {
-    filteredRecipes = filteredRecipes.filter(recipe =>
-      recipe.difficultyLevel && recipe.difficultyLevel.toLowerCase().includes(difficultyLevel.toLowerCase())
-    );
-  }
-
-  if (dietaryRestrictions) {
-    filteredRecipes = filteredRecipes.filter(recipe =>
-      recipe.dietaryRestrictions && recipe.dietaryRestrictions.some(restriction =>
-        restriction.toLowerCase().includes(dietaryRestrictions.toLowerCase())
-      )
-    );
-  }
-
-  if (mealType) {
-    filteredRecipes = filteredRecipes.filter(recipe =>
-      recipe.mealType && recipe.mealType.toLowerCase().includes(mealType.toLowerCase())
-    );
-  }
-
-  if (cookingMethod) {
-    filteredRecipes = filteredRecipes.filter(recipe =>
-      recipe.cookingMethod && recipe.cookingMethod.toLowerCase().includes(cookingMethod.toLowerCase())
-    );
-  }
-
-  if (minRating) {
-    filteredRecipes = filteredRecipes.filter(recipe => recipe.averageRating >= parseFloat(minRating));
-  }
-
-  if (proteinType) {
-    filteredRecipes = filteredRecipes.filter(recipe =>
-      recipe.proteinType && recipe.proteinType.toLowerCase().includes(proteinType.toLowerCase())
-    );
-  }
-
-  if (approxTime) {
-    filteredRecipes = filteredRecipes.filter(recipe => recipe.approxTime === approxTime);
-  }
-
-  if (calories) {
-    const caloriesMap = {
-      '100': recipe => recipe.calories < 100,
-      '300': recipe => recipe.calories < 300,
-      '500': recipe => recipe.calories < 500,
-      '1000': recipe => recipe.calories < 1000
-    };
-    const filterFunction = caloriesMap[calories];
-    if (filterFunction) {
-      filteredRecipes = filteredRecipes.filter(filterFunction);
-    }
-  }
-
-  return filteredRecipes;
-};
-
 // Create new recipe (protected route)
 router.post('/', verifyToken, async (req, res) => {
   const { title, ingredients, instructions, approxTime, servings, imageUrl, proteinType, cuisineType, difficultyLevel, dietaryRestrictions, cookingMethod, calories, mealType } = req.body;
@@ -107,7 +21,7 @@ router.post('/', verifyToken, async (req, res) => {
       approxTime,
       servings,
       imageUrl,
-      createdBy: user.username, // Store username instead of ObjectId
+      createdBy: user.username,
       proteinType,
       cuisineType,
       difficultyLevel,
@@ -140,20 +54,58 @@ router.get('/search', async (req, res) => {
   } = req.query;
 
   try {
-    let recipes = await Recipe.find();
-    recipes = filterRecipes(recipes, {
-      searchTerm,
-      cuisineType,
-      difficultyLevel,
-      dietaryRestrictions,
-      mealType,
-      cookingMethod,
-      calories,
-      minRating,
-      proteinType,
-      approxTime
-    });
+    let query = {};
 
+    if (searchTerm) {
+      query.$or = [
+        { title: { $regex: searchTerm, $options: 'i' } },
+        { createdBy: { $regex: searchTerm, $options: 'i' } }
+      ];
+    }
+
+    if (cuisineType) {
+      query.cuisineType = { $regex: cuisineType, $options: 'i' };
+    }
+
+    if (difficultyLevel) {
+      query.difficultyLevel = { $regex: difficultyLevel, $options: 'i' };
+    }
+
+    if (dietaryRestrictions) {
+      query.dietaryRestrictions = { $regex: dietaryRestrictions, $options: 'i' };
+    }
+
+    if (mealType) {
+      query.mealType = { $regex: mealType, $options: 'i' };
+    }
+
+    if (cookingMethod) {
+      query.cookingMethod = { $regex: cookingMethod, $options: 'i' };
+    }
+
+    if (minRating) {
+      query.averageRating = { $gte: parseFloat(minRating) };
+    }
+
+    if (proteinType) {
+      query.proteinType = { $regex: proteinType, $options: 'i' };
+    }
+
+    if (approxTime) {
+      query.approxTime = { $regex: approxTime, $options: "i" };
+    }
+
+    if (calories) {
+      const caloriesMap = {
+        '100': { $lt: 100 },
+        '300': { $lt: 300 },
+        '500': { $lt: 500 },
+        '1000': { $lt: 1000 },
+      };
+      query.calories = caloriesMap[calories];
+    }
+
+    const recipes = await Recipe.find(query);
     res.json({ recipes });
   } catch (error) {
     console.error('Error during search:', error.message);
@@ -373,23 +325,18 @@ router.delete('/:id/comments/:commentId', verifyToken, async (req, res) => {
     const commentId = req.params.commentId;
     const userId = req.user.id;
 
-    console.log(`Deleting comment with ID ${commentId} for recipe ${recipeId} by user ${userId}`); // Debugging statement
-
     const recipe = await Recipe.findById(recipeId);
     if (!recipe) {
-      console.log('Recipe not found');
       return res.status(404).json({ error: 'Recipe not found' });
     }
 
     const commentIndex = recipe.comments.findIndex(comment => comment.id === commentId);
     if (commentIndex === -1) {
-      console.log('Comment not found');
       return res.status(404).json({ error: 'Comment not found' });
     }
 
     const comment = recipe.comments[commentIndex];
     if (comment.userId.toString() !== userId) {
-      console.log('Unauthorized');
       return res.status(401).json({ error: 'Unauthorized' });
     }
 

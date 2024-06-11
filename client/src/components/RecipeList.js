@@ -16,9 +16,9 @@ import {
   DialogActions,
   Button,
   IconButton,
-  Rating,
   TextField,
   Collapse,
+  Rating,
 } from '@mui/material';
 import Favorite from '@mui/icons-material/Favorite';
 import FavoriteBorder from '@mui/icons-material/FavoriteBorder';
@@ -69,7 +69,6 @@ const RecipeList = ({ token }) => {
   });
 
   const userIdFromToken = token ? jwtDecode(token).id : null;
-  console.log('User ID from Token:', userIdFromToken); // Debugging statement
 
   const fetchRecipes = async () => {
     try {
@@ -77,8 +76,8 @@ const RecipeList = ({ token }) => {
       setRecipes(response.data.recipes);
       setError('');
     } catch (error) {
-      console.error('Error fetching recipes:', error);
       setError('Error fetching recipes, please try again.');
+      toast.error('Error fetching recipes, please try again.');
     }
   };
 
@@ -86,19 +85,20 @@ const RecipeList = ({ token }) => {
     fetchRecipes();
   }, []);
 
-  const fetchSavedRecipes = async () => {
-    try {
-      const response = await axios.get('http://localhost:5001/api/profile/saved', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setSavedRecipes(response.data.savedRecipes.map((recipe) => recipe._id));
-    } catch (error) {
-      console.error('Error fetching saved recipes:', error);
-      setError('Error fetching saved recipes, please try again.');
-    }
-  };
 
   useEffect(() => {
+    const fetchSavedRecipes = async () => {
+      try {
+        const response = await axios.get('http://localhost:5001/api/profile/saved', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setSavedRecipes(response.data.savedRecipes.map((recipe) => recipe._id));
+      } catch (error) {
+        setError('Error fetching saved recipes, please try again.');
+        toast.error('Error fetching saved recipes, please try again.');
+      }
+    };
+
     if (token) {
       fetchSavedRecipes();
     }
@@ -107,16 +107,15 @@ const RecipeList = ({ token }) => {
   const fetchComments = async (recipeId) => {
     try {
       const response = await axios.get(`http://localhost:5001/api/recipes/${recipeId}/comments`);
-      console.log('Fetched comments:', response.data.comments); // Debugging statement
       setComments((prevComments) => ({ ...prevComments, [recipeId]: response.data.comments }));
     } catch (error) {
-      console.error('Error fetching comments:', error);
+      toast.error('Error fetching comments:', error);
     }
   };
 
   const handleCardClick = (recipe) => {
     setSelectedRecipe(recipe);
-    fetchComments(recipe._id); // Fetch comments when a recipe is selected
+    fetchComments(recipe._id);
   };
 
   const handleClose = () => {
@@ -142,7 +141,6 @@ const RecipeList = ({ token }) => {
       setSavedRecipes([...savedRecipes, recipeId]);
       toast.success('Recipe saved to profile.');
     } catch (error) {
-      console.error('Error saving recipe:', error);
       toast.error('Error saving recipe, please try again.');
     }
   };
@@ -164,7 +162,7 @@ const RecipeList = ({ token }) => {
       setSavedRecipes(savedRecipes.filter((id) => id !== recipeId));
       toast.success('Recipe removed from profile.');
     } catch (error) {
-      console.error('Error unsaving recipe:', error);
+      toast.error('Error unsaving recipe:', error);
       toast.error('Error unsaving recipe, please try again.');
     }
   };
@@ -188,11 +186,10 @@ const RecipeList = ({ token }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      fetchComments(recipeId); // Refresh comments after adding a new one
+      fetchComments(recipeId);
       setNewComment('');
       setShowComments((prev) => ({ ...prev, [recipeId]: true }));
     } catch (error) {
-      console.error('Error adding comment:', error);
       toast.error('Error adding comment, please try again.');
     }
   };
@@ -224,11 +221,10 @@ const RecipeList = ({ token }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      fetchComments(recipeId); // Refresh comments after adding a reply
+      fetchComments(recipeId);
       setReplyText('');
       setShowReply((prev) => ({ ...prev, [commentId]: false }));
     } catch (error) {
-      console.error('Error adding reply:', error);
       toast.error('Error adding reply, please try again.');
     }
   };
@@ -240,21 +236,15 @@ const RecipeList = ({ token }) => {
     }
 
     try {
-      console.log(`Attempting to delete comment ${commentId} for recipe ${recipeId}`); // Debugging statement
-      const response = await axios.delete(
+      await axios.delete(
         `http://localhost:5001/api/recipes/${recipeId}/comments/${commentId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      console.log('Delete response:', response); // Debugging statement
-      fetchComments(recipeId); // Refresh comments after deletion
+      fetchComments(recipeId);
       toast.success('Comment deleted.');
     } catch (error) {
-      console.error('Error deleting comment:', error); // Debugging statement
-      if (error.response) {
-        console.error('Error response:', error.response.data); // Additional debugging
-      }
       toast.error('Error deleting comment, please try again.');
     }
   };
@@ -266,17 +256,16 @@ const RecipeList = ({ token }) => {
     }
 
     try {
-      console.log(`Attempting to delete reply ${replyId}`); // Debugging statement
       await axios.delete(
         `http://localhost:5001/api/recipes/${recipeId}/comments/${commentId}/replies/${replyId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      fetchComments(recipeId); // Refresh comments after deletion
+      fetchComments(recipeId);
       toast.success('Reply deleted.');
     } catch (error) {
-      console.error('Error deleting reply:', error);
+      toast.error('Error deleting reply:', error);
       toast.error('Error deleting reply, please try again.');
     }
   };
@@ -293,12 +282,11 @@ const RecipeList = ({ token }) => {
 
   const getShareUrl = (recipeId) => {
     const url = `${window.location.origin}/recipes/${recipeId}`;
-    console.log('Generated Share URL:', url); // Debugging statement
     try {
       new URL(url);
       return url;
     } catch (error) {
-      console.error('Invalid URL:', url);
+      toast.error('Invalid URL:', url);
       return null;
     }
   };
@@ -324,7 +312,6 @@ const RecipeList = ({ token }) => {
       );
       toast.success('Rating submitted.');
     } catch (error) {
-      console.error('Error submitting rating:', error);
       toast.error('Error submitting rating, please try again.');
     }
   };
@@ -594,21 +581,16 @@ const RecipeList = ({ token }) => {
                                 </Typography>
                               )}
                             </IconButton>
-                            {console.log('Comment User ID:', comment.userId, 'Token User ID:', userIdFromToken)} {/* Debugging statement */}
                             {comment.userId === userIdFromToken && (
                               <>
                                 <IconButton
                                   size="small"
                                   color="secondary"
-                                  onClick={() => {
-                                    console.log('Attempting to delete comment:', comment._id); // Additional logging
-                                    handleDeleteComment(selectedRecipe._id, comment._id);
-                                  }}
+                                  onClick={() => handleDeleteComment(selectedRecipe._id, comment._id)}
                                   style={{ color: '#B22222' }}
                                 >
                                   <DeleteIcon />
                                 </IconButton>
-                                {console.log('Delete button should be visible')} {/* Additional logging */}
                               </>
                             )}
                           </Box>
@@ -650,21 +632,16 @@ const RecipeList = ({ token }) => {
                                     <Typography variant="caption" color="text.secondary" component="div">
                                       {new Date(reply.date).toLocaleString()}
                                     </Typography>
-                                    {console.log('Reply User ID:', reply.userId, 'Token User ID:', userIdFromToken)} {/* Debugging statement */}
                                     {reply.userId === userIdFromToken && (
                                       <>
                                         <IconButton
                                           size="small"
                                           color="secondary"
-                                          onClick={() => {
-                                            console.log('Attempting to delete reply:', reply._id); // Additional logging
-                                            handleDeleteReply(selectedRecipe._id, comment._id, reply._id);
-                                          }}
+                                          onClick={() => handleDeleteReply(selectedRecipe._id, comment._id, reply._id)}
                                           style={{ color: '#B22222' }}
                                         >
                                           <DeleteIcon />
                                         </IconButton>
-                                        {console.log('Delete button should be visible')} {/* Additional logging */}
                                       </>
                                     )}
                                   </Box>

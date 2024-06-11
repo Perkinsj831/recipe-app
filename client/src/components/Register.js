@@ -23,15 +23,17 @@ const Register = () => {
       return;
     }
     try {
-      console.log('Sending registration data:', { username, email, password }); // Log the data being sent
-      const response = await axios.post("http://localhost:5001/api/auth/register", { username, email, password });
+      const apiUrl = process.env.REACT_APP_API_URL;
+      await axios.post(`${apiUrl}/api/auth/register`, { username, email, password });
       setSuccess("User registered successfully. Please login.");
       setError("");
       setUsername("");
       setEmail("");
       setPassword("");
       setConfirmPassword("");
-      navigate('/login'); // Navigate to login page after successful registration
+      setTimeout(() => {
+        navigate('/login');
+      }, 1000);
     } catch (error) {
       setError(error.response?.data?.error || "Registration failed. Please try again.");
       setSuccess("");

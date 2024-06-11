@@ -6,13 +6,13 @@ import {
   Typography,
   Card,
   CardContent,
-  Rating,
   Box,
   CircularProgress,
   Button,
   IconButton,
   TextField,
-  Collapse
+  Collapse,
+  Rating,
 } from "@mui/material";
 import CommentIcon from "@mui/icons-material/Comment";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -39,7 +39,7 @@ const RecipeCard = () => {
         const decoded = jwtDecode(token);
         setUserIdFromToken(decoded.id);
       } catch (error) {
-        console.error('Invalid token', error);
+        toast.error('Invalid token', error);
       }
     }
   }, [token]);
@@ -53,7 +53,7 @@ const RecipeCard = () => {
         if (response.data.userRating) {
           setUserRating(response.data.userRating);
         }
-        fetchComments(id); // Fetch comments for the recipe
+        fetchComments(id);
       } catch (error) {
         setError("Error fetching recipe, please try again.");
       }
@@ -67,11 +67,16 @@ const RecipeCard = () => {
       const response = await axios.get(`http://localhost:5001/api/recipes/${recipeId}/comments`);
       setComments(response.data.comments);
     } catch (error) {
-      console.error('Error fetching comments:', error);
+      toast.error('Error fetching comments:', error);
     }
   };
 
   const handleRatingChange = async (event, newValue) => {
+    if (!token) {
+      toast.error('You must be logged in to rate a recipe.');
+      return;
+    }
+
     setUserRating(newValue);
     try {
       await axios.post(
@@ -81,9 +86,10 @@ const RecipeCard = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      // Refresh recipe to get updated average rating
+
       const response = await axios.get(`http://localhost:5001/api/recipes/${id}`);
       setRecipe(response.data);
+      toast.success('Rating submitted.');
     } catch (error) {
       setError("Error submitting rating, please try again.");
     }
@@ -108,7 +114,7 @@ const RecipeCard = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      fetchComments(id); // Refresh comments after adding a new one
+      fetchComments(id);
       setNewComment('');
       setShowComments(true);
     } catch (error) {
@@ -143,7 +149,7 @@ const RecipeCard = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      fetchComments(id); // Refresh comments after adding a reply
+      fetchComments(id);
       setReplyText('');
       setShowReply((prev) => ({ ...prev, [commentId]: false }));
     } catch (error) {
@@ -161,7 +167,7 @@ const RecipeCard = () => {
       await axios.delete(`http://localhost:5001/api/recipes/${id}/comments/${commentId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      fetchComments(id); // Refresh comments after deletion
+      fetchComments(id);
       toast.success('Comment deleted.');
     } catch (error) {
       toast.error('Error deleting comment, please try again.');
@@ -181,7 +187,7 @@ const RecipeCard = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      fetchComments(id); // Refresh comments after deletion
+      fetchComments(id);
       toast.success('Reply deleted.');
     } catch (error) {
       toast.error('Error deleting reply, please try again.');
@@ -274,6 +280,8 @@ const RecipeCard = () => {
             <Collapse in={showComments}>
               <Box p={2}>
                 <TextField
+                  id="new-comment"
+                  name="newComment"
                   label="Add a comment"
                   variant="outlined"
                   fullWidth
@@ -330,6 +338,8 @@ const RecipeCard = () => {
                     <Collapse in={showReply[comment._id]}>
                       <Box mt={2} ml={4} component="div">
                         <TextField
+                          id={`reply-text-${comment._id}`}
+                          name={`replyText-${comment._id}`}
                           label="Add a reply"
                           variant="outlined"
                           fullWidth

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { Container, TextField, Button, Typography, Alert, Box, MenuItem, FormControl, InputLabel, Select, FormGroup, FormControlLabel, Checkbox } from "@mui/material";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import { toast } from "react-toastify";
 
 const RecipeForm = ({ token }) => {
   const [title, setTitle] = useState("");
@@ -9,8 +10,8 @@ const RecipeForm = ({ token }) => {
   const [instructions, setInstructions] = useState([""]);
   const [approxTime, setApproxTime] = useState("");  
   const [servings, setServings] = useState("");      
-  const [image, setImage] = useState(null); // State for image file
-  const [imagePreview, setImagePreview] = useState(null); // State for image preview URL
+  const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -25,10 +26,6 @@ const RecipeForm = ({ token }) => {
   const CLOUDINARY_CLOUD_NAME = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
   const CLOUDINARY_UPLOAD_PRESET = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET;
 
-  // Debugging: Check if environment variables are being read correctly
-  console.log('Cloudinary Cloud Name:', CLOUDINARY_CLOUD_NAME);
-  console.log('Cloudinary Upload Preset:', CLOUDINARY_UPLOAD_PRESET);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -36,15 +33,15 @@ const RecipeForm = ({ token }) => {
     if (image) {
       const formData = new FormData();
       formData.append('file', image);
-      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET); // Use the environment variable
+      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
 
       try {
         const response = await axios.post(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, formData);
         imageUrl = response.data.secure_url;
       } catch (error) {
-        console.error('Error uploading image to Cloudinary:', error);
+        toast.error('Error uploading image to Cloudinary:', error);
         setError('Error uploading image, please try again.');
-        return; // Stop the form submission if the image upload fails
+        return;
       }
     }
 
@@ -73,8 +70,8 @@ const RecipeForm = ({ token }) => {
       setInstructions([""]);
       setApproxTime("");  
       setServings("");    
-      setImage(null); // Reset image
-      setImagePreview(null); // Reset image preview
+      setImage(null);
+      setImagePreview(null);
       setProteinType("");
       setCuisineType("");
       setDifficultyLevel("");
@@ -84,8 +81,9 @@ const RecipeForm = ({ token }) => {
       setMealType("");
       setError("");
       setSuccess("Recipe created successfully");
+      toast.success("Recipe created successfully");
     } catch (error) {
-      console.error("Error creating recipe:", error.response?.data || error.message);  
+      toast.error("Error creating recipe:", error.response?.data || error.message);  
       setError("Error creating recipe, please try again.");
       setSuccess("");
     }
@@ -126,6 +124,8 @@ const RecipeForm = ({ token }) => {
       <form onSubmit={handleSubmit}>
         <Typography variant="h4" component="h1" fontFamily={ "Pacifico, cursive"} gutterBottom>Add Recipe</Typography>
         <TextField
+          id="recipe-title"
+          name="title"
           label="Title"
           variant="outlined"
           fullWidth
@@ -134,6 +134,8 @@ const RecipeForm = ({ token }) => {
           onChange={(e) => setTitle(e.target.value)}
         />
         <TextField
+          id="recipe-ingredients"
+          name="ingredients"
           label="Ingredients (comma separated)"
           variant="outlined"
           fullWidth
@@ -144,6 +146,8 @@ const RecipeForm = ({ token }) => {
         {instructions.map((instruction, index) => (
           <TextField
             key={index}
+            id={`recipe-instruction-${index}`}
+            name={`instruction-${index}`}
             label={`Instruction ${index + 1}`}
             variant="outlined"
             fullWidth
@@ -158,8 +162,11 @@ const RecipeForm = ({ token }) => {
           Add Step
         </Button>
         <FormControl fullWidth margin="normal" variant="outlined">
-          <InputLabel>Approximate Time</InputLabel>
+          <InputLabel id="approx-time-label">Approximate Time</InputLabel>
           <Select
+            labelId="approx-time-label"
+            id="recipe-approxTime"
+            name="approxTime"
             value={approxTime}
             onChange={(e) => setApproxTime(e.target.value)}
             label="Approximate Time"
@@ -174,6 +181,8 @@ const RecipeForm = ({ token }) => {
           </Select>
         </FormControl>
         <TextField
+          id="recipe-servings"
+          name="servings"
           label="Number of Servings"
           type="number"
           variant="outlined"
@@ -183,8 +192,11 @@ const RecipeForm = ({ token }) => {
           onChange={(e) => setServings(e.target.value)}
         />
         <FormControl fullWidth margin="normal" variant="outlined">
-          <InputLabel>Protein Type</InputLabel>
+          <InputLabel id="protein-type-label">Protein Type</InputLabel>
           <Select
+            labelId="protein-type-label"
+            id="recipe-proteinType"
+            name="proteinType"
             value={proteinType}
             onChange={(e) => setProteinType(e.target.value)}
             label="Protein Type"
@@ -199,8 +211,11 @@ const RecipeForm = ({ token }) => {
           </Select>
         </FormControl>
         <FormControl fullWidth margin="normal" variant="outlined">
-          <InputLabel>Cuisine Type</InputLabel>
+          <InputLabel id="cuisine-type-label">Cuisine Type</InputLabel>
           <Select
+            labelId="cuisine-type-label"
+            id="recipe-cuisineType"
+            name="cuisineType"
             value={cuisineType}
             onChange={(e) => setCuisineType(e.target.value)}
             label="Cuisine Type"
@@ -218,8 +233,11 @@ const RecipeForm = ({ token }) => {
           </Select>
         </FormControl>
         <FormControl fullWidth margin="normal" variant="outlined">
-          <InputLabel>Difficulty Level</InputLabel>
+          <InputLabel id="difficulty-level-label">Difficulty Level</InputLabel>
           <Select
+            labelId="difficulty-level-label"
+            id="recipe-difficultyLevel"
+            name="difficultyLevel"
             value={difficultyLevel}
             onChange={(e) => setDifficultyLevel(e.target.value)}
             label="Difficulty Level"
@@ -233,38 +251,41 @@ const RecipeForm = ({ token }) => {
           <Typography variant="body1">Dietary Restrictions</Typography>
           <FormGroup row>
             <FormControlLabel
-              control={<Checkbox checked={dietaryRestrictions.includes("N/A")} onChange={handleDietaryRestrictionsChange} value="N/A" />}
+              control={<Checkbox id="recipe-dietary-n-a" name="dietary-n-a" checked={dietaryRestrictions.includes("N/A")} onChange={handleDietaryRestrictionsChange} value="N/A" />}
               label="N/A"
             />
             <FormControlLabel
-              control={<Checkbox checked={dietaryRestrictions.includes("Gluten-Free")} onChange={handleDietaryRestrictionsChange} value="Gluten-Free" />}
+              control={<Checkbox id="recipe-dietary-gluten-free" name="dietary-gluten-free" checked={dietaryRestrictions.includes("Gluten-Free")} onChange={handleDietaryRestrictionsChange} value="Gluten-Free" />}
               label="Gluten-Free"
             />
             <FormControlLabel
-              control={<Checkbox checked={dietaryRestrictions.includes("Nut-Free")} onChange={handleDietaryRestrictionsChange} value="Nut-Free" />}
+              control={<Checkbox id="recipe-dietary-nut-free" name="dietary-nut-free" checked={dietaryRestrictions.includes("Nut-Free")} onChange={handleDietaryRestrictionsChange} value="Nut-Free" />}
               label="Nut-Free"
             />
             <FormControlLabel
-              control={<Checkbox checked={dietaryRestrictions.includes("Dairy-Free")} onChange={handleDietaryRestrictionsChange} value="Dairy-Free" />}
+              control={<Checkbox id="recipe-dietary-dairy-free" name="dietary-dairy-free" checked={dietaryRestrictions.includes("Dairy-Free")} onChange={handleDietaryRestrictionsChange} value="Dairy-Free" />}
               label="Dairy-Free"
             />
             <FormControlLabel
-              control={<Checkbox checked={dietaryRestrictions.includes("Low-Carb")} onChange={handleDietaryRestrictionsChange} value="Low-Carb" />}
+              control={<Checkbox id="recipe-dietary-low-carb" name="dietary-low-carb" checked={dietaryRestrictions.includes("Low-Carb")} onChange={handleDietaryRestrictionsChange} value="Low-Carb" />}
               label="Low-Carb"
             />
             <FormControlLabel
-              control={<Checkbox checked={dietaryRestrictions.includes("Paleo")} onChange={handleDietaryRestrictionsChange} value="Paleo" />}
+              control={<Checkbox id="recipe-dietary-paleo" name="dietary-paleo" checked={dietaryRestrictions.includes("Paleo")} onChange={handleDietaryRestrictionsChange} value="Paleo" />}
               label="Paleo"
             />
             <FormControlLabel
-              control={<Checkbox checked={dietaryRestrictions.includes("Keto")} onChange={handleDietaryRestrictionsChange} value="Keto" />}
+              control={<Checkbox id="recipe-dietary-keto" name="dietary-keto" checked={dietaryRestrictions.includes("Keto")} onChange={handleDietaryRestrictionsChange} value="Keto" />}
               label="Keto"
             />
           </FormGroup>
         </FormControl>
         <FormControl fullWidth margin="normal" variant="outlined">
-          <InputLabel>Meal Type</InputLabel>
+          <InputLabel id="meal-type-label">Meal Type</InputLabel>
           <Select
+            labelId="meal-type-label"
+            id="recipe-mealType"
+            name="mealType"
             value={mealType}
             onChange={(e) => setMealType(e.target.value)}
             label="Meal Type"
@@ -277,8 +298,11 @@ const RecipeForm = ({ token }) => {
           </Select>
         </FormControl>
         <FormControl fullWidth margin="normal" variant="outlined">
-          <InputLabel>Cooking Method</InputLabel>
+          <InputLabel id="cooking-method-label">Cooking Method</InputLabel>
           <Select
+            labelId="cooking-method-label"
+            id="recipe-cookingMethod"
+            name="cookingMethod"
             value={cookingMethod}
             onChange={(e) => setCookingMethod(e.target.value)}
             label="Cooking Method"
@@ -291,6 +315,8 @@ const RecipeForm = ({ token }) => {
           </Select>
         </FormControl>
         <TextField
+          id="recipe-calories"
+          name="calories"
           label="Calories (per serving)"
           type="number"
           variant="outlined"
@@ -303,6 +329,7 @@ const RecipeForm = ({ token }) => {
           accept="image/*"
           style={{ display: 'none' }}
           id="contained-button-file"
+          name="image"
           type="file"
           onChange={handleImageChange}
         />
@@ -319,7 +346,7 @@ const RecipeForm = ({ token }) => {
             </Button>
           </Box>
         )}
-        <Box mt={2}> {/* Add margin-top here */}
+        <Box mt={2}>
           <Button type="submit" variant="contained" color="primary" fullWidth>Add Recipe</Button>
         </Box>
       </form>

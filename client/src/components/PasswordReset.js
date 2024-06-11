@@ -57,6 +57,7 @@ const PasswordReset = () => {
           margin="normal"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          name="newPassword"
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
@@ -78,6 +79,7 @@ const PasswordReset = () => {
           margin="normal"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
+          name="confirmNewPassword"
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
@@ -91,7 +93,9 @@ const PasswordReset = () => {
             ),
           }}
         />
-        <Button type="submit" variant="contained" color="primary" fullWidth>Reset Password</Button>
+        <Button type="submit" variant="contained" color="primary" fullWidth name="resetPasswordButton">
+          Reset Password
+        </Button>
       </form>
     </Container>
   );

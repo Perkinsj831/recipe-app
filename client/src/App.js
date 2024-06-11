@@ -9,7 +9,7 @@ import Profile from "./components/Profile";
 import Admin from "./components/Admin";
 import RecipeCard from "./components/RecipeCard";
 import PasswordResetRequest from "./components/PasswordResetRequest";
-import PasswordReset from "./components/PasswordReset"; // Ensure this import is correct
+import PasswordReset from "./components/PasswordReset";
 import { jwtDecode } from "jwt-decode";
 
 const App = () => {
@@ -35,7 +35,7 @@ const App = () => {
         <Route path="/admin" element={<Admin token={token} />} />
         <Route path="/recipes/:id" element={<RecipeCard />} />
         <Route path="/password-reset-request" element={<PasswordResetRequest />} />
-        <Route path="/reset-password/:token" element={<PasswordReset />} /> {/* Correct path */}
+        <Route path="/reset-password/:token" element={<PasswordReset />} />
       </Routes>
     </Router>
   );

@@ -12,7 +12,7 @@ const PasswordResetRequest = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${apiUrl}/api/auth/reset-password`, { email });
+      const response = await axios.post(`${apiUrl}/api/auth/reset-password`, { email: email.toLowerCase() });
       setMessage(response.data.message);
       setError('');
     } catch (error) {

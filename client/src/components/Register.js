@@ -25,7 +25,7 @@ const Register = () => {
       return;
     }
     try {
-      await axios.post(`${apiUrl}/api/auth/register`, { username, email, password });
+      await axios.post(`${apiUrl}/api/auth/register`, { username, email: email.toLowerCase(), password });
       setSuccess("User registered successfully. Please login.");
       setError("");
       setUsername("");

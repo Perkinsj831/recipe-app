@@ -28,7 +28,7 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Username already taken.' });
     }
 
-    const existingEmail = await User.findOne({ email });
+    const existingEmail = await User.findOne({ email: email.tolowercase() });
     if (existingEmail) {
       return res.status(400).json({ error: 'Email already registered.' });
     }
@@ -80,14 +80,14 @@ router.post('/reset-password', async (req, res) => {
   }
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
       return res.status(400).json({ error: 'No user found with that email.' });
     }
 
     const token = crypto.randomBytes(20).toString('hex');
     user.resetPasswordToken = token;
-    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    user.resetPasswordExpires = Date.now() + 3600000; 
     await user.save();
 
     const resetUrl = `http://localhost:3000/reset-password/${token}`;

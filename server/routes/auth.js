@@ -4,6 +4,7 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+require('dotenv').config();
 
 // Configure nodemailer
 const transporter = nodemailer.createTransport({
@@ -13,6 +14,11 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
 });
+
+// Generate Tokens
+const generateToken = (user, secret, expiresIn) => {
+  return jwt.sign({ id: user._id, isAdmin: user.isAdmin }, secret, { expiresIn });
+};
 
 // Register new user
 router.post('/register', async (req, res) => {
@@ -28,12 +34,12 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Username already taken.' });
     }
 
-    const existingEmail = await User.findOne({ email: email.tolowercase() });
+    const existingEmail = await User.findOne({ email: email.toLowerCase() });
     if (existingEmail) {
       return res.status(400).json({ error: 'Email already registered.' });
     }
 
-    const user = new User({ username, email, password });
+    const user = new User({ username, email: email.toLowerCase(), password });
     await user.save();
     res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
@@ -61,13 +67,27 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET, {
-      expiresIn: '1h'
-    });
-    res.json({ token });
+    const token = generateToken(user, process.env.JWT_SECRET, '15m');
+    const refreshToken = generateToken(user, process.env.JWT_REFRESH_SECRET, '7d');
+    
+    res.json({ token, refreshToken });
   } catch (error) {
     console.error('Error logging in user:', error);
     res.status(500).json({ error: 'Error logging in user.' });
+  }
+});
+
+// Refresh token route
+router.post('/refresh-token', (req, res) => {
+  const { token } = req.body;
+  if (!token) return res.status(403).json({ error: 'Access denied' });
+
+  try {
+    const user = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+    const newToken = generateToken(user, process.env.JWT_SECRET, '15m');
+    res.json({ token: newToken });
+  } catch (error) {
+    res.status(403).json({ error: 'Invalid refresh token' });
   }
 });
 
@@ -87,7 +107,7 @@ router.post('/reset-password', async (req, res) => {
 
     const token = crypto.randomBytes(20).toString('hex');
     user.resetPasswordToken = token;
-    user.resetPasswordExpires = Date.now() + 3600000; 
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
     await user.save();
 
     const resetUrl = `http://localhost:3000/reset-password/${token}`;
@@ -126,7 +146,6 @@ router.post('/reset-password/:token', async (req, res) => {
 
     if (!user) {
       console.error(`Invalid or expired token: ${token}`);
-
       return res.status(400).json({ error: 'Password reset token is invalid or has expired.' });
     }
 

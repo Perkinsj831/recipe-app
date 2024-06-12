@@ -40,7 +40,7 @@ const Login = ({ setToken, setIsAdmin }) => {
   return (
     <Container maxWidth="sm">
       {error && <Alert severity="error">{error}</Alert>}
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} autoComplete='on'>
         <Typography variant="h4" component="h1" gutterBottom>Login</Typography>
         <TextField
           id="username"
@@ -63,6 +63,7 @@ const Login = ({ setToken, setIsAdmin }) => {
           margin="normal"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          autoComplete="current-password"
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">

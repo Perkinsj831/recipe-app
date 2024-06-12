@@ -16,13 +16,24 @@ import SearchIcon from '@mui/icons-material/Search';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
 import { makeStyles } from '@mui/styles';
 
-const useStyles = makeStyles({
-  button: {
+const useStyles = makeStyles((theme) => ({
+  clearButton: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
+    padding: '6px 12px',
+    [theme.breakpoints.down('sm')]: {
+      fontSize: '0.75rem',
+      padding: '4px 8px',
+    },
   },
-});
+  clearIcon: {
+    marginRight: theme.spacing(1),
+  },
+}));
 
 const FilterBar = ({ onFilter }) => {
   const classes = useStyles();
@@ -149,9 +160,9 @@ const FilterBar = ({ onFilter }) => {
             variant="contained"
             color="secondary"
             fullWidth
-            startIcon={<ClearAllIcon />}
-            className={classes.button}
+            className={classes.clearButton}
           >
+            <ClearAllIcon className={classes.clearIcon} />
             Clear Filters
           </Button>
         </Grid>

@@ -1,10 +1,29 @@
-import React from 'react';
-import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
+import React, { useState } from 'react';
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Box,
+  IconButton,
+  Drawer,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Divider,
+  useTheme,
+  useMediaQuery
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 const NavBar = ({ token, isAdmin, setToken }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const handleLogout = () => {
     setToken('');
@@ -14,6 +33,48 @@ const NavBar = ({ token, isAdmin, setToken }) => {
 
   const isActive = (path) => location.pathname === path;
 
+  const toggleDrawer = (open) => (event) => {
+    if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
+      return;
+    }
+    setDrawerOpen(open);
+  };
+
+  const menuItems = [
+    { text: 'Recipes', path: '/' },
+    { text: 'Add Recipe', path: '/recipes', auth: true },
+    { text: 'Admin', path: '/admin', auth: true, admin: true },
+    { text: 'Profile', path: '/profile', auth: true },
+    { text: 'Login', path: '/login', auth: false },
+    { text: 'Register', path: '/register', auth: false }
+  ];
+
+  const renderMenuItems = (drawer = false) => (
+    <List>
+      {menuItems.map(({ text, path, auth, admin }) => {
+        if (auth && !token) return null;
+        if (admin && !isAdmin) return null;
+        return (
+          <ListItem
+            button
+            key={text}
+            component={Link}
+            to={path}
+            onClick={drawer ? toggleDrawer(false) : undefined}
+            selected={isActive(path)}
+          >
+            <ListItemText primary={text} />
+          </ListItem>
+        );
+      })}
+      {token && (
+        <ListItem button onClick={handleLogout}>
+          <ListItemText primary="Logout" />
+        </ListItem>
+      )}
+    </List>
+  );
+
   return (
     <Box>
       <AppBar position="static">
@@ -21,68 +82,45 @@ const NavBar = ({ token, isAdmin, setToken }) => {
           <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
             <Typography variant="h5" style={{ fontFamily: 'Pacifico, cursive', fontSize: '1.8rem' }}>
               ReciPeace
-              <img src={`${process.env.PUBLIC_URL}/peaceSign3.png`} alt="Peace Sign" style={{ height: '50px', marginLeft: '10px', verticalAlign: 'middle', backgroundColor: '#B22222' }} />
+              <img
+                src={`${process.env.PUBLIC_URL}/peaceSign3.png`}
+                alt="Peace Sign"
+                style={{
+                  height: '50px',
+                  marginLeft: '10px',
+                  verticalAlign: 'middle',
+                  backgroundColor: '#B22222'
+                }}
+              />
             </Typography>
           </Box>
-          <Button
-            color="inherit"
-            component={Link}
-            to="/"
-            style={isActive('/') ? { textDecoration: 'underline' } : {}}
-          >
-            Recipes 
-          </Button>
-          {token ? (
+          {isMobile ? (
             <>
-              <Button
+              <IconButton
+                edge="start"
                 color="inherit"
-                component={Link}
-                to="/recipes"
-                style={isActive('/recipes') ? { textDecoration: 'underline' } : {}}
+                aria-label="menu"
+                onClick={toggleDrawer(true)}
               >
-                Add Recipe
-              </Button>
-              {isAdmin && (
-                <Button
-                  color="inherit"
-                  component={Link}
-                  to="/admin"
-                  style={isActive('/admin') ? { textDecoration: 'underline' } : {}}
+                <MenuIcon />
+              </IconButton>
+              <Drawer
+                anchor="right"
+                open={drawerOpen}
+                onClose={toggleDrawer(false)}
               >
-                Admin
-              </Button>
-              )}
-              <Button
-                color="inherit"
-                component={Link}
-                to="/profile"
-                style={isActive('/profile') ? { textDecoration: 'underline' } : {}}
-              >
-                Profile
-              </Button>
-              <Button color="inherit" onClick={handleLogout}>
-                Logout
-              </Button>
+                <Box
+                  sx={{ width: 250 }}
+                  role="presentation"
+                  onClick={toggleDrawer(false)}
+                  onKeyDown={toggleDrawer(false)}
+                >
+                  {renderMenuItems(true)}
+                </Box>
+              </Drawer>
             </>
           ) : (
-            <>
-              <Button
-                color="inherit"
-                component={Link}
-                to="/login"
-                style={isActive('/login') ? { textDecoration: 'underline' } : {}}
-              >
-                Login
-              </Button>
-              <Button
-                color="inherit"
-                component={Link}
-                to="/register"
-                style={isActive('/register') ? { textDecoration: 'underline' } : {}}
-              >
-                Register
-              </Button>
-            </>
+            renderMenuItems()
           )}
         </Toolbar>
       </AppBar>

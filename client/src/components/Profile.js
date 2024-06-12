@@ -42,6 +42,8 @@ import {
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import FilterBar from './FilterBar';
 
+const apiUrl = process.env.REACT_APP_API_URL;
+
 const CLOUDINARY_CLOUD_NAME = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
 const CLOUDINARY_UPLOAD_PRESET = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET;
 
@@ -77,7 +79,7 @@ const Profile = ({ token }) => {
 
   const fetchSavedRecipes = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/profile/saved', {
+      const response = await axios.get(`${apiUrl}/api/profile/saved`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSavedRecipes(response.data.savedRecipes);
@@ -90,7 +92,7 @@ const Profile = ({ token }) => {
 
   const fetchUploadedRecipes = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/profile/uploaded', {
+      const response = await axios.get(`${apiUrl}/api/profile/uploaded`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUploadedRecipes(response.data.uploadedRecipes);
@@ -180,7 +182,7 @@ const Profile = ({ token }) => {
 
   const fetchComments = async (recipeId) => {
     try {
-      const response = await axios.get(`http://localhost:5001/api/recipes/${recipeId}/comments`);
+      const response = await axios.get(`${apiUrl}/api/recipes/${recipeId}/comments`);
       setComments((prevComments) => ({ ...prevComments, [recipeId]: response.data.comments }));
     } catch (error) {
       toast.error('Error fetching comments:', error);
@@ -205,7 +207,7 @@ const Profile = ({ token }) => {
 
     try {
       await axios.post(
-        `http://localhost:5001/api/recipes/${recipeId}/unsave`,
+        `${apiUrl}/api/recipes/${recipeId}/unsave`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -236,7 +238,7 @@ const Profile = ({ token }) => {
 
     try {
       const response = await axios.post(
-        `http://localhost:5001/api/recipes/${recipeId}/rate`,
+        `${apiUrl}/api/recipes/${recipeId}/rate`,
         { rating: newRating },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -318,7 +320,7 @@ const Profile = ({ token }) => {
 
     try {
       await axios.put(
-        `http://localhost:5001/api/recipes/${editRecipe._id}`,
+        `${apiUrl}/api/recipes/${editRecipe._id}`,
         {
           ...editRecipe,
           imageUrl,
@@ -348,7 +350,7 @@ const Profile = ({ token }) => {
 
     try {
       await axios.post(
-        `http://localhost:5001/api/recipes/${recipeId}/comments`,
+        `${apiUrl}/api/recipes/${recipeId}/comments`,
         { text: newComment },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -383,7 +385,7 @@ const Profile = ({ token }) => {
 
     try {
       await axios.post(
-        `http://localhost:5001/api/recipes/${recipeId}/comments/${commentId}/replies`,
+        `${apiUrl}/api/recipes/${recipeId}/comments/${commentId}/replies`,
         { text: replyText },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -405,7 +407,7 @@ const Profile = ({ token }) => {
 
     try {
       await axios.delete(
-        `http://localhost:5001/api/recipes/${recipeId}/comments/${commentId}`,
+        `${apiUrl}/api/recipes/${recipeId}/comments/${commentId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -425,7 +427,7 @@ const Profile = ({ token }) => {
 
     try {
       await axios.delete(
-        `http://localhost:5001/api/recipes/${recipeId}/comments/${commentId}/replies/${replyId}`,
+        `${apiUrl}/api/recipes/${recipeId}/comments/${commentId}/replies/${replyId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

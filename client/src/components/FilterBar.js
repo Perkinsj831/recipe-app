@@ -14,8 +14,18 @@ import {
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
+import { makeStyles } from '@mui/styles';
+
+const useStyles = makeStyles({
+  button: {
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+});
 
 const FilterBar = ({ onFilter }) => {
+  const classes = useStyles();
   const [searchTerm, setSearchTerm] = useState('');
   const [cuisineType, setCuisineType] = useState('');
   const [difficultyLevel, setDifficultyLevel] = useState('');
@@ -140,6 +150,7 @@ const FilterBar = ({ onFilter }) => {
             color="secondary"
             fullWidth
             startIcon={<ClearAllIcon />}
+            className={classes.button}
           >
             Clear Filters
           </Button>

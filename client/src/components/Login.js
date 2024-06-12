@@ -6,6 +6,8 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useNavigate, Link } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 
+const apiUrl = process.env.REACT_APP_API_URL;
+
 const Login = ({ setToken, setIsAdmin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -16,7 +18,7 @@ const Login = ({ setToken, setIsAdmin }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5001/api/auth/login', { username, password });
+      const response = await axios.post(`${apiUrl}/api/auth/login`, { username, password });
       const token = response.data.token;
       setToken(token);
       localStorage.setItem('token', token);

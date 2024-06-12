@@ -21,6 +21,8 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
 
+const apiUrl = process.env.REACT_APP_API_URL;
+
 const Admin = ({ token }) => {
   const [recipes, setRecipes] = useState([]);
   const [error, setError] = useState("");
@@ -30,7 +32,7 @@ const Admin = ({ token }) => {
 
   const fetchRecipes = useCallback(async (params = {}) => {
     try {
-      const response = await axios.get("http://localhost:5001/api/recipes/search", {
+      const response = await axios.get(`${apiUrl}/api/recipes/search`, {
         headers: { Authorization: `Bearer ${token}` },
         params,
       });
@@ -47,7 +49,7 @@ const Admin = ({ token }) => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:5001/api/recipes/${id}`, {
+      await axios.delete(`${apiUrl}/api/recipes/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setRecipes(recipes.filter((recipe) => recipe._id !== id));

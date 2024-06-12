@@ -5,6 +5,8 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useParams, useNavigate } from 'react-router-dom';
 
+const apiUrl = process.env.REACT_APP_API_URL;
+
 const PasswordReset = () => {
   const { token } = useParams();
   const [password, setPassword] = useState('');
@@ -31,7 +33,7 @@ const PasswordReset = () => {
     }
 
     try {
-      const response = await axios.post(`http://localhost:5001/api/auth/reset-password/${token}`, { password });
+      const response = await axios.post(`${apiUrl}/api/auth/reset-password/${token}`, { password });
       setMessage(response.data.message);
       setError('');
       setTimeout(() => {

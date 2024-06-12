@@ -20,6 +20,8 @@ import ReplyIcon from "@mui/icons-material/Reply";
 import { toast } from "react-toastify";
 import { jwtDecode } from "jwt-decode";
 
+const apiUrl = process.env.REACT_APP_API_URL;
+
 const RecipeCard = () => {
   const { id } = useParams();
   const [recipe, setRecipe] = useState(null);
@@ -47,7 +49,7 @@ const RecipeCard = () => {
   useEffect(() => {
     const fetchRecipe = async () => {
       try {
-        const response = await axios.get(`http://localhost:5001/api/recipes/${id}`);
+        const response = await axios.get(`${apiUrl}/api/recipes/${id}`);
         setRecipe(response.data);
         setError("");
         if (response.data.userRating) {
@@ -64,7 +66,7 @@ const RecipeCard = () => {
 
   const fetchComments = async (recipeId) => {
     try {
-      const response = await axios.get(`http://localhost:5001/api/recipes/${recipeId}/comments`);
+      const response = await axios.get(`${apiUrl}/api/recipes/${recipeId}/comments`);
       setComments(response.data.comments);
     } catch (error) {
       toast.error('Error fetching comments:', error);
@@ -80,14 +82,14 @@ const RecipeCard = () => {
     setUserRating(newValue);
     try {
       await axios.post(
-        `http://localhost:5001/api/recipes/${id}/rate`,
+        `${apiUrl}/api/recipes/${id}/rate`,
         { rating: newValue },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      const response = await axios.get(`http://localhost:5001/api/recipes/${id}`);
+      const response = await axios.get(`${apiUrl}/api/recipes/${id}`);
       setRecipe(response.data);
       toast.success('Rating submitted.');
     } catch (error) {
@@ -108,7 +110,7 @@ const RecipeCard = () => {
 
     try {
       await axios.post(
-        `http://localhost:5001/api/recipes/${id}/comments`,
+        `${apiUrl}/api/recipes/${id}/comments`,
         { text: newComment },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -143,7 +145,7 @@ const RecipeCard = () => {
 
     try {
       await axios.post(
-        `http://localhost:5001/api/recipes/${id}/comments/${commentId}/replies`,
+        `${apiUrl}/api/recipes/${id}/comments/${commentId}/replies`,
         { text: replyText },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -164,7 +166,7 @@ const RecipeCard = () => {
     }
 
     try {
-      await axios.delete(`http://localhost:5001/api/recipes/${id}/comments/${commentId}`, {
+      await axios.delete(`${apiUrl}/api/recipes/${id}/comments/${commentId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchComments(id);
@@ -182,7 +184,7 @@ const RecipeCard = () => {
 
     try {
       await axios.delete(
-        `http://localhost:5001/api/recipes/${id}/comments/${commentId}/replies/${replyId}`,
+        `${apiUrl}/api/recipes/${id}/comments/${commentId}/replies/${replyId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

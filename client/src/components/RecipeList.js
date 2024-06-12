@@ -42,6 +42,8 @@ import {
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import FilterBar from './FilterBar';
 
+const apiUrl = process.env.REACT_APP_API_URL;
+
 const RecipeList = ({ token }) => {
   const [recipes, setRecipes] = useState([]);
   const [filteredRecipes, setFilteredRecipes] = useState([]);
@@ -72,7 +74,7 @@ const RecipeList = ({ token }) => {
 
   const fetchRecipes = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/recipes/search');
+      const response = await axios.get(`${apiUrl}/api/recipes/search`);
       setRecipes(response.data.recipes);
       setError('');
     } catch (error) {
@@ -89,7 +91,7 @@ const RecipeList = ({ token }) => {
   useEffect(() => {
     const fetchSavedRecipes = async () => {
       try {
-        const response = await axios.get('http://localhost:5001/api/profile/saved', {
+        const response = await axios.get(`${apiUrl}/api/profile/saved`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSavedRecipes(response.data.savedRecipes.map((recipe) => recipe._id));
@@ -106,7 +108,7 @@ const RecipeList = ({ token }) => {
 
   const fetchComments = async (recipeId) => {
     try {
-      const response = await axios.get(`http://localhost:5001/api/recipes/${recipeId}/comments`);
+      const response = await axios.get(`${apiUrl}/api/recipes/${recipeId}/comments`);
       setComments((prevComments) => ({ ...prevComments, [recipeId]: response.data.comments }));
     } catch (error) {
       toast.error('Error fetching comments:', error);
@@ -132,7 +134,7 @@ const RecipeList = ({ token }) => {
 
     try {
       await axios.post(
-        `http://localhost:5001/api/recipes/${recipeId}/saved`,
+        `${apiUrl}/api/recipes/${recipeId}/saved`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -153,7 +155,7 @@ const RecipeList = ({ token }) => {
 
     try {
       await axios.post(
-        `http://localhost:5001/api/recipes/${recipeId}/unsave`,
+        `${apiUrl}/api/recipes/${recipeId}/unsave`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -180,7 +182,7 @@ const RecipeList = ({ token }) => {
 
     try {
       await axios.post(
-        `http://localhost:5001/api/recipes/${recipeId}/comments`,
+        `${apiUrl}/api/recipes/${recipeId}/comments`,
         { text: newComment },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -215,7 +217,7 @@ const RecipeList = ({ token }) => {
 
     try {
       await axios.post(
-        `http://localhost:5001/api/recipes/${recipeId}/comments/${commentId}/replies`,
+        `${apiUrl}/api/recipes/${recipeId}/comments/${commentId}/replies`,
         { text: replyText },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -237,7 +239,7 @@ const RecipeList = ({ token }) => {
 
     try {
       await axios.delete(
-        `http://localhost:5001/api/recipes/${recipeId}/comments/${commentId}`,
+        `${apiUrl}/api/recipes/${recipeId}/comments/${commentId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -257,7 +259,7 @@ const RecipeList = ({ token }) => {
 
     try {
       await axios.delete(
-        `http://localhost:5001/api/recipes/${recipeId}/comments/${commentId}/replies/${replyId}`,
+        `${apiUrl}/api/recipes/${recipeId}/comments/${commentId}/replies/${replyId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -299,7 +301,7 @@ const RecipeList = ({ token }) => {
 
     try {
       const response = await axios.post(
-        `http://localhost:5001/api/recipes/${recipeId}/rate`,
+        `${apiUrl}/api/recipes/${recipeId}/rate`,
         { rating: newRating },
         {
           headers: { Authorization: `Bearer ${token}` },

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Container, TextField, Button, Typography, Alert } from '@mui/material';
 
+const apiUrl = process.env.REACT_APP_API_URL;
+
 const PasswordResetRequest = () => {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
@@ -10,7 +12,7 @@ const PasswordResetRequest = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5001/api/auth/reset-password', { email });
+      const response = await axios.post(`${apiUrl}/api/auth/reset-password`, { email });
       setMessage(response.data.message);
       setError('');
     } catch (error) {

@@ -4,6 +4,8 @@ import { Container, TextField, Button, Typography, Alert, Box, MenuItem, FormCon
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { toast } from "react-toastify";
 
+const apiUrl = process.env.REACT_APP_API_URL;
+
 const RecipeForm = ({ token }) => {
   const [title, setTitle] = useState("");
   const [ingredients, setIngredients] = useState("");
@@ -46,7 +48,7 @@ const RecipeForm = ({ token }) => {
     }
 
     try {
-      await axios.post("http://localhost:5001/api/recipes", {
+      await axios.post(`${apiUrl}/api/recipes`, {
         title,
         ingredients: ingredients.split(","),
         instructions,

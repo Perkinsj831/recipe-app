@@ -21,17 +21,15 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
     padding: '6px 12px',
     [theme.breakpoints.down('sm')]: {
-      fontSize: '0.75rem',
-      padding: '4px 8px',
+      padding: '6px 6px',
     },
   },
-  clearIcon: {
-    marginRight: theme.spacing(1),
+  clearButtonText: {
+    [theme.breakpoints.down('sm')]: {
+      display: 'none',
+    },
   },
 }));
 
@@ -160,10 +158,10 @@ const FilterBar = ({ onFilter }) => {
             variant="contained"
             color="secondary"
             fullWidth
+            startIcon={<ClearAllIcon />}
             className={classes.clearButton}
           >
-            <ClearAllIcon className={classes.clearIcon} />
-            Clear Filters
+            <span className={classes.clearButtonText}>Clear Filters</span>
           </Button>
         </Grid>
         <Grid item xs={12} sm={6}>

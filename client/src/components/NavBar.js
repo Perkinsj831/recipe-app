@@ -10,8 +10,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemIcon,
-  Divider,
   useTheme,
   useMediaQuery
 } from '@mui/material';
@@ -44,7 +42,10 @@ const NavBar = ({ token, isAdmin, setToken }) => {
     { text: 'Recipes', path: '/' },
     { text: 'Add Recipe', path: '/recipes', auth: true },
     { text: 'Admin', path: '/admin', auth: true, admin: true },
-    { text: 'Profile', path: '/profile', auth: true },
+    { text: 'Profile', path: '/profile', auth: true }
+  ];
+
+  const authItems = [
     { text: 'Login', path: '/login', auth: false },
     { text: 'Register', path: '/register', auth: false }
   ];
@@ -67,6 +68,18 @@ const NavBar = ({ token, isAdmin, setToken }) => {
           </ListItem>
         );
       })}
+      {!token && authItems.map(({ text, path }) => (
+        <ListItem
+          button
+          key={text}
+          component={Link}
+          to={path}
+          onClick={drawer ? toggleDrawer(false) : undefined}
+          selected={isActive(path)}
+        >
+          <ListItemText primary={text} />
+        </ListItem>
+      ))}
       {token && (
         <ListItem button onClick={handleLogout}>
           <ListItemText primary="Logout" />
@@ -120,7 +133,39 @@ const NavBar = ({ token, isAdmin, setToken }) => {
               </Drawer>
             </>
           ) : (
-            renderMenuItems()
+            <Box sx={{ display: 'flex' }}>
+              {menuItems.map(({ text, path, auth, admin }) => {
+                if (auth && !token) return null;
+                if (admin && !isAdmin) return null;
+                return (
+                  <Button
+                    color="inherit"
+                    component={Link}
+                    to={path}
+                    key={text}
+                    style={isActive(path) ? { textDecoration: 'underline' } : {}}
+                  >
+                    {text}
+                  </Button>
+                );
+              })}
+              {!token && authItems.map(({ text, path }) => (
+                <Button
+                  color="inherit"
+                  component={Link}
+                  to={path}
+                  key={text}
+                  style={isActive(path) ? { textDecoration: 'underline' } : {}}
+                >
+                  {text}
+                </Button>
+              ))}
+              {token && (
+                <Button color="inherit" onClick={handleLogout}>
+                  Logout
+                </Button>
+              )}
+            </Box>
           )}
         </Toolbar>
       </AppBar>

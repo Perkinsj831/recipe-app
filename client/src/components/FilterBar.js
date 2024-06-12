@@ -10,31 +10,14 @@ import {
   FormControl,
   InputLabel,
   Select,
-  Slider
+  Slider,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
-import { makeStyles } from '@mui/styles';
-
-const useStyles = makeStyles((theme) => ({
-  clearButton: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '6px 12px',
-    [theme.breakpoints.down('sm')]: {
-      padding: '6px 6px',
-    },
-  },
-  clearButtonText: {
-    [theme.breakpoints.down('sm')]: {
-      display: 'none',
-    },
-  },
-}));
 
 const FilterBar = ({ onFilter }) => {
-  const classes = useStyles();
   const [searchTerm, setSearchTerm] = useState('');
   const [cuisineType, setCuisineType] = useState('');
   const [difficultyLevel, setDifficultyLevel] = useState('');
@@ -45,6 +28,9 @@ const FilterBar = ({ onFilter }) => {
   const [minRating, setMinRating] = useState(0);
   const [proteinType, setProteinType] = useState('');
   const [under30Minutes, setUnder30Minutes] = useState('');
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const handleSearch = () => {
     onFilter('searchTerm', searchTerm);
@@ -159,9 +145,9 @@ const FilterBar = ({ onFilter }) => {
             color="secondary"
             fullWidth
             startIcon={<ClearAllIcon />}
-            className={classes.clearButton}
+            size={isMobile ? 'small' : 'medium'}
           >
-            <span className={classes.clearButtonText}>Clear Filters</span>
+            {isMobile ? '' : 'Clear Filters'}
           </Button>
         </Grid>
         <Grid item xs={12} sm={6}>

@@ -273,7 +273,6 @@ const FilterBar = ({ onFilter }) => {
               <MenuItem value="Fish">Fish</MenuItem>
               <MenuItem value="Vegetarian">Vegetarian</MenuItem>
               <MenuItem value="Vegan">Vegan</MenuItem>
-              <MenuItem value="N/A">N/A</MenuItem>
             </Select>
           </FormControl>
         </Grid>

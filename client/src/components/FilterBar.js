@@ -249,7 +249,7 @@ const FilterBar = ({ onFilter }) => {
               <MenuItem value="Slow Cooker">Slow Cooker</MenuItem>
               <MenuItem value="Instant Pot">Instant Pot</MenuItem>
               <MenuItem value="Air Fryer">Air Fryer</MenuItem>
-              <MenuItem value="Stir-Fry">Stir-Fry</MenuItem>
+              <MenuItem value="Stove Top">Stove Top</MenuItem>
             </Select>
           </FormControl>
         </Grid>

@@ -117,7 +117,7 @@ const FilterBar = ({ onFilter }) => {
   return (
     <Box my={2}>
       <Grid container spacing={2} alignItems="center">
-        <Grid item xs={10}>
+        <Grid item xs={12} sm={10}>
           <TextField
             fullWidth
             placeholder="Search by recipe or creator"
@@ -138,19 +138,18 @@ const FilterBar = ({ onFilter }) => {
             }}
           />
         </Grid>
-        <Grid item xs={2}>
+        <Grid item xs={12} sm={2}>
           <Button
             onClick={clearAllFilters}
             variant="contained"
             color="secondary"
             fullWidth
             startIcon={<ClearAllIcon />}
-            size={isMobile ? 'small' : 'medium'}
           >
-            {isMobile ? '' : 'Clear Filters'}
+            Clear Filters
           </Button>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12}>
           <FormControl fullWidth variant="outlined">
             <InputLabel htmlFor="filter-cuisine-type">Cuisine Type</InputLabel>
             <Select

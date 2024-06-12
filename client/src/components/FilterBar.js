@@ -244,6 +244,7 @@ const FilterBar = ({ onFilter }) => {
               name="cookingMethod"
             >
               <MenuItem value=""><em>None</em></MenuItem>
+              <MenuItem value="No Cooking Required">No Cooking Required</MenuItem>
               <MenuItem value="Baking">Baking</MenuItem>
               <MenuItem value="Grilling">Grilling</MenuItem>
               <MenuItem value="Slow Cooker">Slow Cooker</MenuItem>

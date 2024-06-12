@@ -309,6 +309,7 @@ const RecipeForm = ({ token }) => {
             onChange={(e) => setCookingMethod(e.target.value)}
             label="Cooking Method"
           >
+            <MenuItem value="No Cooking Required">No Cooking Required</MenuItem>
             <MenuItem value="Baking">Baking</MenuItem>
             <MenuItem value="Grilling">Grilling</MenuItem>
             <MenuItem value="Slow Cooker">Slow Cooker</MenuItem>

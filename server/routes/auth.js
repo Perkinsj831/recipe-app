@@ -4,7 +4,6 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
-require('dotenv').config();
 
 // Configure nodemailer
 const transporter = nodemailer.createTransport({
@@ -15,7 +14,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Generate Tokens
+// Utility function to generate tokens
 const generateToken = (user, secret, expiresIn) => {
   return jwt.sign({ id: user._id, isAdmin: user.isAdmin }, secret, { expiresIn });
 };
@@ -77,17 +76,27 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Refresh token route
-router.post('/refresh-token', (req, res) => {
+// Refresh token
+router.post('/refresh-token', async (req, res) => {
   const { token } = req.body;
-  if (!token) return res.status(403).json({ error: 'Access denied' });
+
+  if (!token) {
+    return res.status(401).json({ error: 'Refresh token is required' });
+  }
 
   try {
-    const user = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid refresh token' });
+    }
+
     const newToken = generateToken(user, process.env.JWT_SECRET, '15m');
     res.json({ token: newToken });
   } catch (error) {
-    res.status(403).json({ error: 'Invalid refresh token' });
+    console.error('Error refreshing token:', error);
+    res.status(401).json({ error: 'Invalid refresh token' });
   }
 });
 

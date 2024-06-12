@@ -146,10 +146,10 @@ const FilterBar = ({ onFilter }) => {
             fullWidth
             startIcon={<ClearAllIcon />}
           >
-            Clear Filters
+            {isMobile ? 'Clear Filters' : 'Clear Filters'}
           </Button>
         </Grid>
-        <Grid item xs={12}>
+        <Grid item xs={12} sm={6}>
           <FormControl fullWidth variant="outlined">
             <InputLabel htmlFor="filter-cuisine-type">Cuisine Type</InputLabel>
             <Select

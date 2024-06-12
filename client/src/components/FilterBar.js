@@ -267,6 +267,7 @@ const FilterBar = ({ onFilter }) => {
             >
               <MenuItem value=""><em>None</em></MenuItem>
               <MenuItem value="Chicken">Chicken</MenuItem>
+              <MenuItem value="Turkey">Turkey</MenuItem>
               <MenuItem value="Beef">Beef</MenuItem>
               <MenuItem value="Pork">Pork</MenuItem>
               <MenuItem value="Fish">Fish</MenuItem>

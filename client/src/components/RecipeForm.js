@@ -203,8 +203,9 @@ const RecipeForm = ({ token }) => {
             onChange={(e) => setProteinType(e.target.value)}
             label="Protein Type"
           >
-            <MenuItem value="">N/A</MenuItem>
+            <MenuItem value="N/A">N/A</MenuItem>
             <MenuItem value="Chicken">Chicken</MenuItem>
+            <MenuItem value="Turkey">Turkey</MenuItem>
             <MenuItem value="Beef">Beef</MenuItem>
             <MenuItem value="Pork">Pork</MenuItem>
             <MenuItem value="Fish">Fish</MenuItem>
@@ -222,7 +223,7 @@ const RecipeForm = ({ token }) => {
             onChange={(e) => setCuisineType(e.target.value)}
             label="Cuisine Type"
           >
-            <MenuItem value="">N/A</MenuItem>
+            <MenuItem value="N/A">N/A</MenuItem>
             <MenuItem value="Italian">Italian</MenuItem>
             <MenuItem value="Mexican">Mexican</MenuItem>
             <MenuItem value="Indian">Indian</MenuItem>

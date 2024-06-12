@@ -57,6 +57,7 @@ const RecipeCard = () => {
         }
         fetchComments(id);
       } catch (error) {
+        console.error("Error fetching recipe:", error);
         setError("Error fetching recipe, please try again.");
       }
     };

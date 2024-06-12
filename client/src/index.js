@@ -6,7 +6,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import theme from './theme';
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import setupAxiosInterceptors from './components/axiosConfig';
+import setupAxiosInterceptors from './components/axiosConfig.js';
 
 setupAxiosInterceptors();
 

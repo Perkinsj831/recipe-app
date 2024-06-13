@@ -66,14 +66,27 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
-    const token = generateToken(user, process.env.JWT_SECRET, '15m');
-    const refreshToken = generateToken(user, process.env.JWT_REFRESH_SECRET, '7d');
+    const token = generateToken(user, process.env.JWT_SECRET, '30m');
+    const refreshToken = generateToken(user, process.env.JWT_REFRESH_SECRET, '30d');
 
     res.json({ token, refreshToken });
   } catch (error) {
     console.error('Error logging in user:', error);
     res.status(500).json({ error: 'Error logging in user.' });
   }
+});
+
+// Refresh token endpoint
+router.post('/refresh-token', (req, res) => {
+  const { token } = req.body;
+  if (!token) return res.status(401).json({ error: 'Refresh token is required' });
+
+  jwt.verify(token, process.env.JWT_REFRESH_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ error: 'Invalid refresh token' });
+
+    const newToken = generateToken(user, process.env.JWT_SECRET, '30m');
+    res.json({ token: newToken });
+  });
 });
 
 // Request password reset
@@ -92,7 +105,7 @@ router.post('/reset-password', async (req, res) => {
 
     const token = crypto.randomBytes(20).toString('hex');
     user.resetPasswordToken = token;
-    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    user.resetPasswordExpires = Date.now() + 3600000;
     await user.save();
 
     const resetUrl = `http://localhost:3000/reset-password/${token}`;

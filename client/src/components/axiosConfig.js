@@ -22,6 +22,7 @@ const refreshToken = async () => {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
     window.location.href = '/login';
+    toast.error('Your session has expired. Please log in again.');
     return null;
   }
 };
@@ -59,6 +60,13 @@ const setupAxiosInterceptors = () => {
         originalRequest.headers['Authorization'] = `Bearer ${token}`;
         return axios(originalRequest);
       }
+    }
+
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      toast.error('Your session has expired. Please log in again.');
+      window.location.href = '/login';
     }
     
     return Promise.reject(error);

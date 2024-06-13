@@ -68,35 +68,11 @@ router.post('/login', async (req, res) => {
 
     const token = generateToken(user, process.env.JWT_SECRET, '15m');
     const refreshToken = generateToken(user, process.env.JWT_REFRESH_SECRET, '7d');
-    
+
     res.json({ token, refreshToken });
   } catch (error) {
     console.error('Error logging in user:', error);
     res.status(500).json({ error: 'Error logging in user.' });
-  }
-});
-
-// Refresh token
-router.post('/refresh-token', async (req, res) => {
-  const { token } = req.body;
-
-  if (!token) {
-    return res.status(401).json({ error: 'Refresh token is required' });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
-    const user = await User.findById(decoded.id);
-
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid refresh token' });
-    }
-
-    const newToken = generateToken(user, process.env.JWT_SECRET, '15m');
-    res.json({ token: newToken });
-  } catch (error) {
-    console.error('Error refreshing token:', error);
-    res.status(401).json({ error: 'Invalid refresh token' });
   }
 });
 

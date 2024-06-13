@@ -208,6 +208,7 @@ const RecipeForm = ({ token }) => {
             <MenuItem value="Turkey">Turkey</MenuItem>
             <MenuItem value="Beef">Beef</MenuItem>
             <MenuItem value="Pork">Pork</MenuItem>
+            <MenuItem value="Lamb">Lamb</MenuItem>
             <MenuItem value="Fish">Fish</MenuItem>
             <MenuItem value="Vegetarian">Vegetarian</MenuItem>
             <MenuItem value="Vegan">Vegan</MenuItem>

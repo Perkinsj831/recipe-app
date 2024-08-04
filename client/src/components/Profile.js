@@ -19,6 +19,7 @@ import {
   Rating,
   TextField,
   Collapse,
+  CircularProgress,
 } from '@mui/material';
 import Favorite from '@mui/icons-material/Favorite';
 import ArrowForward from '@mui/icons-material/ArrowForward';
@@ -41,17 +42,28 @@ import {
 } from 'react-share';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import FilterBar from './FilterBar';
+import { useNavigate } from 'react-router-dom';
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
 const CLOUDINARY_CLOUD_NAME = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
 const CLOUDINARY_UPLOAD_PRESET = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET;
 
+// Function to check if token is expired
+const isTokenExpired = (token) => {
+  if (!token) return true;
+  const decodedToken = jwtDecode(token);
+  const currentTime = Date.now() / 1000;
+  return decodedToken.exp < currentTime;
+};
+
 const Profile = ({ token }) => {
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [uploadedRecipes, setUploadedRecipes] = useState([]);
   const [filteredSavedRecipes, setFilteredSavedRecipes] = useState([]);
   const [filteredUploadedRecipes, setFilteredUploadedRecipes] = useState([]);
+  const [loadingSaved, setLoadingSaved] = useState(true);
+  const [loadingUploaded, setLoadingUploaded] = useState(true);
   const [error, setError] = useState('');
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [editRecipe, setEditRecipe] = useState(null);
@@ -74,6 +86,8 @@ const Profile = ({ token }) => {
     proteinType: '',
     approxTime: '',
   });
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const navigate = useNavigate();
 
   const userIdFromToken = token ? jwtDecode(token).id : null;
 
@@ -85,8 +99,14 @@ const Profile = ({ token }) => {
       setSavedRecipes(response.data.savedRecipes);
       setError('');
     } catch (error) {
-      setError('Error fetching saved recipes, please try again.');
-      toast.error('Error fetching saved recipes, please try again.');
+      if (error.response && error.response.status === 401) {
+        setShowLoginDialog(true);
+      } else {
+        setError('Error fetching saved recipes, please try again.');
+        toast.error('Error fetching saved recipes, please try again.');
+      }
+    } finally {
+      setLoadingSaved(false);
     }
   };
 
@@ -98,8 +118,14 @@ const Profile = ({ token }) => {
       setUploadedRecipes(response.data.uploadedRecipes);
       setError('');
     } catch (error) {
-      setError('Error fetching uploaded recipes, please try again.');
-      toast.error('Error fetching uploaded recipes, please try again.');
+      if (error.response && error.response.status === 401) {
+        setShowLoginDialog(true);
+      } else {
+        setError('Error fetching uploaded recipes, please try again.');
+        toast.error('Error fetching uploaded recipes, please try again.');
+      }
+    } finally {
+      setLoadingUploaded(false);
     }
   };
 
@@ -108,6 +134,16 @@ const Profile = ({ token }) => {
       fetchSavedRecipes();
       fetchUploadedRecipes();
     }
+
+    // Interval to check token expiration
+    const intervalId = setInterval(() => {
+      if (token && isTokenExpired(token)) {
+        setShowLoginDialog(true);
+      }
+    }, 60000); // Check every minute
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(intervalId);
   }, [token]);
 
   useEffect(() => {
@@ -439,6 +475,11 @@ const Profile = ({ token }) => {
     }
   };
 
+  const handleReLogin = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
+
   return (
     <Container maxWidth="md">
       <Typography
@@ -455,119 +496,131 @@ const Profile = ({ token }) => {
       <Typography variant="h4" component="h2" textAlign="center" fontFamily={ "Pacifico, cursive" } gutterBottom sx={{ textDecoration: 'underline', color: '#B22222', marginBottom: '2rem' }}>
         Saved Recipes
       </Typography>
-      <Grid container spacing={4}>
-        {filteredSavedRecipes.map((recipe) => (
-          <Grid item key={recipe._id} xs={12} sm={6} md={4}>
-            <Card style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-              <CardActionArea onClick={() => handleCardClick(recipe)} style={{ flexGrow: 1 }}>
-                {recipe.imageUrl && (
-                  <img src={recipe.imageUrl} alt={recipe.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
-                )}
-                <CardContent style={{ height: '100%' }}>
-                  <Typography variant="h5" component="div">
-                    {recipe.title}
+      {loadingSaved ? (
+        <Box display="flex" justifyContent="center" alignItems="center" height="200px">
+          <CircularProgress />
+        </Box>
+      ) : (
+        <Grid container spacing={4}>
+          {filteredSavedRecipes.map((recipe) => (
+            <Grid item key={recipe._id} xs={12} sm={6} md={4}>
+              <Card style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <CardActionArea onClick={() => handleCardClick(recipe)} style={{ flexGrow: 1 }}>
+                  {recipe.imageUrl && (
+                    <img src={recipe.imageUrl} alt={recipe.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
+                  )}
+                  <CardContent style={{ height: '100%' }}>
+                    <Typography variant="h5" component="div">
+                      {recipe.title}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary"><strong>Approximate Time:</strong> {recipe.approxTime}</Typography>
+                    <Typography variant="body2" color="text.secondary"><strong>Servings:</strong> {recipe.servings}</Typography>
+                    <Typography variant="body2" color="text.secondary"><strong>Created by:</strong> {recipe.createdBy}</Typography>
+                  </CardContent>
+                </CardActionArea>
+                <Box display="flex" justifyContent="space-between" alignItems="center" px={2} pb={2}>
+                  <Rating
+                    name={`recipe-rating-${recipe._id}`}
+                    value={recipe.averageRating || 0}
+                    precision={0.5}
+                    onChange={(event, newValue) => handleRatingChange(recipe._id, newValue)}
+                    style={{ color: '#ffb400' }}
+                    onClick={(event) => event.stopPropagation()}
+                  />
+                  <Typography variant="body2" ml={1}>
+                    ({recipe.ratings ? recipe.ratings.length : 0} ratings)
                   </Typography>
-                  <Typography variant="body2" color="text.secondary"><strong>Approximate Time:</strong> {recipe.approxTime}</Typography>
-                  <Typography variant="body2" color="text.secondary"><strong>Servings:</strong> {recipe.servings}</Typography>
-                  <Typography variant="body2" color="text.secondary"><strong>Created by:</strong> {recipe.createdBy}</Typography>
-                </CardContent>
-              </CardActionArea>
-              <Box display="flex" justifyContent="space-between" alignItems="center" px={2} pb={2}>
-                <Rating
-                  name={`recipe-rating-${recipe._id}`}
-                  value={recipe.averageRating || 0}
-                  precision={0.5}
-                  onChange={(event, newValue) => handleRatingChange(recipe._id, newValue)}
-                  style={{ color: '#ffb400' }}
-                  onClick={(event) => event.stopPropagation()}
-                />
-                <Typography variant="body2" ml={1}>
-                  ({recipe.ratings ? recipe.ratings.length : 0} ratings)
-                </Typography>
-              </Box>
-              <Box display="flex" justifyContent="space-between" alignItems="center" px={2} pb={2}>
-                <IconButton
-                  color="primary"
-                  onClick={() => handleUnsaveRecipe(recipe._id)}
-                >
-                  <Favorite />
-                </IconButton>
-                <Button
-                  variant="text"
-                  color="primary"
-                  startIcon={<ArrowForward />}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    handleShareClick(recipe);
-                  }}
-                >
-                  Share
-                </Button>
-              </Box>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+                </Box>
+                <Box display="flex" justifyContent="space-between" alignItems="center" px={2} pb={2}>
+                  <IconButton
+                    color="primary"
+                    onClick={() => handleUnsaveRecipe(recipe._id)}
+                  >
+                    <Favorite />
+                  </IconButton>
+                  <Button
+                    variant="text"
+                    color="primary"
+                    startIcon={<ArrowForward />}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleShareClick(recipe);
+                    }}
+                  >
+                    Share
+                  </Button>
+                </Box>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
       <Typography variant="h4" component="h2" textAlign="center" fontFamily={ "Pacifico, cursive" } gutterBottom style={{ marginTop: '4rem', textDecoration: 'underline', color: '#B22222', marginBottom: '2rem' }}>
         Your Uploaded Recipes
       </Typography>
-      <Grid container spacing={4}>
-        {filteredUploadedRecipes.map((recipe) => (
-          <Grid item key={recipe._id} xs={12} sm={6} md={4}>
-            <Card style={{ display: "flex", flexDirection: "column", height: '100%'}}>
-              <CardActionArea onClick={() => handleCardClick(recipe)} style={{ flexGrow: 1 }}>
-                {recipe.imageUrl && (
-                  <img src={recipe.imageUrl} alt={recipe.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
-                )}
-                <CardContent style={{ height: '100%'}}>
-                  <Typography variant="h5" component="div">
-                    {recipe.title}
+      {loadingUploaded ? (
+        <Box display="flex" justifyContent="center" alignItems="center" height="200px">
+          <CircularProgress />
+        </Box>
+      ) : (
+        <Grid container spacing={4}>
+          {filteredUploadedRecipes.map((recipe) => (
+            <Grid item key={recipe._id} xs={12} sm={6} md={4}>
+              <Card style={{ display: "flex", flexDirection: "column", height: '100%'}}>
+                <CardActionArea onClick={() => handleCardClick(recipe)} style={{ flexGrow: 1 }}>
+                  {recipe.imageUrl && (
+                    <img src={recipe.imageUrl} alt={recipe.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
+                  )}
+                  <CardContent style={{ height: '100%'}}>
+                    <Typography variant="h5" component="div">
+                      {recipe.title}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary"><strong>Approximate Time:</strong> {recipe.approxTime}</Typography>
+                    <Typography variant="body2" color="text.secondary"><strong>Servings:</strong> {recipe.servings}</Typography>
+                    <Typography variant="body2" color="text.secondary"><strong>Created by:</strong> {recipe.createdBy}</Typography>
+                  </CardContent>
+                </CardActionArea>
+                <Box display="flex" justifyContent="space-between" alignItems="center" px={2} pb={2}>
+                  <Rating
+                    name={`recipe-rating-${recipe._id}`}
+                    value={recipe.averageRating || 0}
+                    precision={0.5}
+                    onChange={(event, newValue) => handleRatingChange(recipe._id, newValue)}
+                    style={{ color: '#ffb400' }}
+                    onClick={(event) => event.stopPropagation()}
+                  />
+                  <Typography variant="body2" ml={1}>
+                    ({recipe.ratings ? recipe.ratings.length : 0} ratings)
                   </Typography>
-                  <Typography variant="body2" color="text.secondary"><strong>Approximate Time:</strong> {recipe.approxTime}</Typography>
-                  <Typography variant="body2" color="text.secondary"><strong>Servings:</strong> {recipe.servings}</Typography>
-                  <Typography variant="body2" color="text.secondary"><strong>Created by:</strong> {recipe.createdBy}</Typography>
-                </CardContent>
-              </CardActionArea>
-              <Box display="flex" justifyContent="space-between" alignItems="center" px={2} pb={2}>
-                <Rating
-                  name={`recipe-rating-${recipe._id}`}
-                  value={recipe.averageRating || 0}
-                  precision={0.5}
-                  onChange={(event, newValue) => handleRatingChange(recipe._id, newValue)}
-                  style={{ color: '#ffb400' }}
-                  onClick={(event) => event.stopPropagation()}
-                />
-                <Typography variant="body2" ml={1}>
-                  ({recipe.ratings ? recipe.ratings.length : 0} ratings)
-                </Typography>
-              </Box>
-              <Box display="flex" justifyContent="space-between" alignItems="center" px={2} pb={2}>
-                <Button
-                  variant="text"
-                  color="primary"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    handleEditClick(recipe);
-                  }}
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="text"
-                  color="primary"
-                  startIcon={<ArrowForward />}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    handleShareClick(recipe);
-                  }}
-                >
-                  Share
-                </Button>
-              </Box>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+                </Box>
+                <Box display="flex" justifyContent="space-between" alignItems="center" px={2} pb={2}>
+                  <Button
+                    variant="text"
+                    color="primary"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleEditClick(recipe);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="text"
+                    color="primary"
+                    startIcon={<ArrowForward />}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleShareClick(recipe);
+                    }}
+                  >
+                    Share
+                  </Button>
+                </Box>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
       {selectedRecipe && (
         <Dialog open={Boolean(selectedRecipe)} onClose={handleClose}>
           <DialogTitle>{selectedRecipe.title}</DialogTitle>
@@ -934,6 +987,19 @@ const Profile = ({ token }) => {
           </DialogActions>
         </Dialog>
       )}
+      <Dialog open={showLoginDialog} onClose={() => {}}>
+        <DialogTitle>Session Expired</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Your session has expired. Please log in again to continue.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleReLogin} color="primary">
+            Log In
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

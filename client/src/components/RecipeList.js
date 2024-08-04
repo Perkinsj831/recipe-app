@@ -1,5 +1,7 @@
+// RecipeList.js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import {
   Container,
@@ -19,6 +21,7 @@ import {
   TextField,
   Collapse,
   Rating,
+  CircularProgress,
 } from '@mui/material';
 import Favorite from '@mui/icons-material/Favorite';
 import FavoriteBorder from '@mui/icons-material/FavoriteBorder';
@@ -44,7 +47,14 @@ import FilterBar from './FilterBar';
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
-const RecipeList = ({ token }) => {
+const isTokenExpired = (token) => {
+  if (!token) return true;
+  const decodedToken = jwtDecode(token);
+  const currentTime = Date.now() / 1000;
+  return decodedToken.exp < currentTime;
+};
+
+const RecipeList = ({ token, setIsAdmin }) => {
   const [recipes, setRecipes] = useState([]);
   const [filteredRecipes, setFilteredRecipes] = useState([]);
   const [error, setError] = useState('');
@@ -69,6 +79,9 @@ const RecipeList = ({ token }) => {
     proteinType: '',
     approxTime: '',
   });
+  const [loading, setLoading] = useState(true);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const navigate = useNavigate();
 
   const userIdFromToken = token ? jwtDecode(token).id : null;
 
@@ -80,31 +93,53 @@ const RecipeList = ({ token }) => {
     } catch (error) {
       setError('Error fetching recipes, please try again.');
       toast.error('Error fetching recipes, please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchSavedRecipes = async () => {
+    try {
+      const response = await axios.get(`${apiUrl}/api/profile/saved`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setSavedRecipes(response.data.savedRecipes.map((recipe) => recipe._id));
+    } catch (error) {
+      if (isTokenExpired(token)) {
+        setShowLoginDialog(true);
+      } else {
+        setError('Error fetching saved recipes, please try again.');
+        toast.error('Error fetching saved recipes, please try again.');
+      }
     }
   };
 
   useEffect(() => {
     fetchRecipes();
-  }, []);
-
-
-  useEffect(() => {
-    const fetchSavedRecipes = async () => {
-      try {
-        const response = await axios.get(`${apiUrl}/api/profile/saved`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setSavedRecipes(response.data.savedRecipes.map((recipe) => recipe._id));
-      } catch (error) {
-        setError('Error fetching saved recipes, please try again.');
-        toast.error('Error fetching saved recipes, please try again.');
-      }
-    };
-
-    if (token) {
+    if (token && !isTokenExpired(token)) {
       fetchSavedRecipes();
+    } else if (token) {
+      setShowLoginDialog(true);
     }
+
+    const intervalId = setInterval(() => {
+      if (token && isTokenExpired(token)) {
+        setShowLoginDialog(true);
+        if (typeof setIsAdmin === 'function') {
+          setIsAdmin(false);
+        }
+      }
+    }, 60000); // Check token expiration every minute
+
+    return () => clearInterval(intervalId);
   }, [token]);
+
+  const handleReLogin = () => {
+    if (typeof setIsAdmin === 'function') {
+      setIsAdmin(false);
+    }
+    navigate('/login');
+  };
 
   const fetchComments = async (recipeId) => {
     try {
@@ -164,7 +199,6 @@ const RecipeList = ({ token }) => {
       setSavedRecipes(savedRecipes.filter((id) => id !== recipeId));
       toast.success('Recipe removed from profile.');
     } catch (error) {
-      toast.error('Error unsaving recipe:', error);
       toast.error('Error unsaving recipe, please try again.');
     }
   };
@@ -267,7 +301,6 @@ const RecipeList = ({ token }) => {
       fetchComments(recipeId);
       toast.success('Reply deleted.');
     } catch (error) {
-      toast.error('Error deleting reply:', error);
       toast.error('Error deleting reply, please try again.');
     }
   };
@@ -391,72 +424,79 @@ const RecipeList = ({ token }) => {
           {error}
         </Typography>
       )}
-      <Grid container spacing={4}>
-        {filteredRecipes.map((recipe) => (
-          <Grid item key={recipe._id} xs={12} sm={6} md={4}>
-            <Card style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-              <CardActionArea onClick={() => handleCardClick(recipe)} style={{ flexGrow: 1 }}>
-                {recipe.imageUrl && (
-                  <img
-                    src={recipe.imageUrl}
-                    alt={recipe.title}
-                    style={{ width: '100%', height: '200px', objectFit: 'cover' }}
+      {loading ? (
+        <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+          <CircularProgress />
+          <Typography variant="body1" ml={2}>Loading recipes...</Typography>
+        </Box>
+      ) : (
+        <Grid container spacing={4}>
+          {filteredRecipes.map((recipe) => (
+            <Grid item key={recipe._id} xs={12} sm={6} md={4}>
+              <Card style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <CardActionArea onClick={() => handleCardClick(recipe)} style={{ flexGrow: 1 }}>
+                  {recipe.imageUrl && (
+                    <img
+                      src={recipe.imageUrl}
+                      alt={recipe.title}
+                      style={{ width: '100%', height: '200px', objectFit: 'cover' }}
+                    />
+                  )}
+                  <CardContent style={{ height: '100%' }}>
+                    <Typography variant="h5" component="div">
+                      {recipe.title}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" component="div">
+                      Approximate Time: {recipe.approxTime}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" component="div">
+                      Servings: {recipe.servings}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" component="div">
+                      Created by: {recipe.createdBy}
+                    </Typography>
+                  </CardContent>
+                </CardActionArea>
+                <Box display="flex" justifyContent="space-between" alignItems="center" px={2} pb={2}>
+                  <Rating
+                    name={`recipe-rating-${recipe._id}`}
+                    value={recipe.averageRating || 0}
+                    precision={0.5}
+                    onChange={(event, newValue) => handleRatingChange(recipe._id, newValue)}
+                    style={{ color: '#ffb400' }}
+                    onClick={(event) => event.stopPropagation()}
                   />
-                )}
-                <CardContent style={{ height: '100%' }}>
-                  <Typography variant="h5" component="div">
-                    {recipe.title}
+                  <Typography variant="body2" ml={1} component="div">
+                    ({recipe.ratings ? recipe.ratings.length : 0} ratings)
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" component="div">
-                    Approximate Time: {recipe.approxTime}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" component="div">
-                    Servings: {recipe.servings}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" component="div">
-                    Created by: {recipe.createdBy}
-                  </Typography>
-                </CardContent>
-              </CardActionArea>
-              <Box display="flex" justifyContent="space-between" alignItems="center" px={2} pb={2}>
-                <Rating
-                  name={`recipe-rating-${recipe._id}`}
-                  value={recipe.averageRating || 0}
-                  precision={0.5}
-                  onChange={(event, newValue) => handleRatingChange(recipe._id, newValue)}
-                  style={{ color: '#ffb400' }}
-                  onClick={(event) => event.stopPropagation()}
-                />
-                <Typography variant="body2" ml={1} component="div">
-                  ({recipe.ratings ? recipe.ratings.length : 0} ratings)
-                </Typography>
-              </Box>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 10px' }}>
-                <IconButton
-                  color="primary"
-                  onClick={() => {
-                    if (savedRecipes.includes(recipe._id)) {
-                      handleUnsaveRecipe(recipe._id);
-                    } else {
-                      handleSaveRecipe(recipe._id);
-                    }
-                  }}
-                >
-                  {savedRecipes.includes(recipe._id) ? <Favorite /> : <FavoriteBorder />}
-                </IconButton>
-                <Button
-                  variant="text"
-                  color="primary"
-                  startIcon={<ArrowForward />}
-                  onClick={() => handleShareClick(recipe)}
-                >
-                  Share
-                </Button>
-              </div>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+                </Box>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 10px' }}>
+                  <IconButton
+                    color="primary"
+                    onClick={() => {
+                      if (savedRecipes.includes(recipe._id)) {
+                        handleUnsaveRecipe(recipe._id);
+                      } else {
+                        handleSaveRecipe(recipe._id);
+                      }
+                    }}
+                  >
+                    {savedRecipes.includes(recipe._id) ? <Favorite /> : <FavoriteBorder />}
+                  </IconButton>
+                  <Button
+                    variant="text"
+                    color="primary"
+                    startIcon={<ArrowForward />}
+                    onClick={() => handleShareClick(recipe)}
+                  >
+                    Share
+                  </Button>
+                </div>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
       {selectedRecipe && (
         <Dialog open={Boolean(selectedRecipe)} onClose={handleClose}>
           <DialogTitle>{selectedRecipe.title}</DialogTitle>
@@ -723,6 +763,19 @@ const RecipeList = ({ token }) => {
           </DialogActions>
         </Dialog>
       )}
+      <Dialog open={showLoginDialog} onClose={() => {}}>
+        <DialogTitle>Session Expired</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Your session has expired. Please log back in to continue.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleReLogin} color="primary">
+            Log In
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

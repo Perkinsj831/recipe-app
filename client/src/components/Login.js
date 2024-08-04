@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Container, TextField, Button, Typography, Alert, IconButton, InputAdornment } from '@mui/material';
+import { Container, TextField, Button, Typography, Alert, IconButton, InputAdornment, CircularProgress, Box } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useNavigate, Link } from 'react-router-dom';
@@ -13,10 +13,13 @@ const Login = ({ setToken, setIsAdmin }) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
     try {
       const response = await axios.post(`${apiUrl}/api/auth/login`, { username, password });
       const token = response.data.token;
@@ -26,10 +29,11 @@ const Login = ({ setToken, setIsAdmin }) => {
       const decodedToken = jwtDecode(token);
       setIsAdmin(decodedToken.isAdmin);
 
-      setError('');
       navigate('/');
     } catch (error) {
       setError('Invalid credentials, please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -77,7 +81,29 @@ const Login = ({ setToken, setIsAdmin }) => {
             ),
           }}
         />
-        <Button type="submit" variant="contained" color="primary" fullWidth>Login</Button>
+        <Box position="relative">
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            disabled={loading}
+          >
+            Login
+          </Button>
+          {loading && (
+            <CircularProgress
+              size={24}
+              sx={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                marginTop: '-12px',
+                marginLeft: '-12px',
+              }}
+            />
+          )}
+        </Box>
       </form>
       <Typography variant="body1" component="p" marginTop={2}>
         Don't have an account? <Link to="/register">Register here</Link>

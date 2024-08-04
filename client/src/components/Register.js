@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { Container, TextField, Button, Typography, Alert, IconButton, InputAdornment } from "@mui/material";
+import { Container, TextField, Button, Typography, Alert, IconButton, InputAdornment, CircularProgress, Box } from "@mui/material";
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useNavigate } from 'react-router-dom';
@@ -14,6 +14,7 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -24,6 +25,7 @@ const Register = () => {
       setError("Passwords do not match");
       return;
     }
+    setLoading(true);
     try {
       await axios.post(`${apiUrl}/api/auth/register`, { username, email: email.toLowerCase(), password });
       setSuccess("User registered successfully. Please login.");
@@ -38,6 +40,8 @@ const Register = () => {
     } catch (error) {
       setError(error.response?.data?.error || "Registration failed. Please try again.");
       setSuccess("");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -108,7 +112,29 @@ const Register = () => {
             ),
           }}
         />
-        <Button type="submit" variant="contained" color="primary" fullWidth>Register</Button>
+        <Box position="relative">
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            disabled={loading}
+          >
+            Register
+          </Button>
+          {loading && (
+            <CircularProgress
+              size={24}
+              sx={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                marginTop: '-12px',
+                marginLeft: '-12px',
+              }}
+            />
+          )}
+        </Box>
       </form>
     </Container>
   );

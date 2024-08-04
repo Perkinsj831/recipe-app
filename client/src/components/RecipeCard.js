@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Container,
   Typography,
@@ -13,6 +13,11 @@ import {
   TextField,
   Collapse,
   Rating,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 import CommentIcon from "@mui/icons-material/Comment";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -24,6 +29,7 @@ const apiUrl = process.env.REACT_APP_API_URL;
 
 const RecipeCard = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [recipe, setRecipe] = useState(null);
   const [error, setError] = useState("");
   const [userRating, setUserRating] = useState(0);
@@ -34,6 +40,8 @@ const RecipeCard = () => {
   const [showReply, setShowReply] = useState({});
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [userIdFromToken, setUserIdFromToken] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
 
   useEffect(() => {
     if (token) {
@@ -57,8 +65,14 @@ const RecipeCard = () => {
         }
         fetchComments(id);
       } catch (error) {
-        console.error("Error fetching recipe:", error);
-        setError("Error fetching recipe, please try again.");
+        if (error.response && error.response.status === 401) {
+          setShowLoginDialog(true);
+        } else {
+          console.error("Error fetching recipe:", error);
+          setError("Error fetching recipe, please try again.");
+        }
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -94,7 +108,11 @@ const RecipeCard = () => {
       setRecipe(response.data);
       toast.success('Rating submitted.');
     } catch (error) {
-      setError("Error submitting rating, please try again.");
+      if (error.response && error.response.status === 401) {
+        setShowLoginDialog(true);
+      } else {
+        setError("Error submitting rating, please try again.");
+      }
     }
   };
 
@@ -121,7 +139,11 @@ const RecipeCard = () => {
       setNewComment('');
       setShowComments(true);
     } catch (error) {
-      toast.error('Error adding comment, please try again.');
+      if (error.response && error.response.status === 401) {
+        setShowLoginDialog(true);
+      } else {
+        toast.error('Error adding comment, please try again.');
+      }
     }
   };
 
@@ -156,7 +178,11 @@ const RecipeCard = () => {
       setReplyText('');
       setShowReply((prev) => ({ ...prev, [commentId]: false }));
     } catch (error) {
-      toast.error('Error adding reply, please try again.');
+      if (error.response && error.response.status === 401) {
+        setShowLoginDialog(true);
+      } else {
+        toast.error('Error adding reply, please try again.');
+      }
     }
   };
 
@@ -173,7 +199,11 @@ const RecipeCard = () => {
       fetchComments(id);
       toast.success('Comment deleted.');
     } catch (error) {
-      toast.error('Error deleting comment, please try again.');
+      if (error.response && error.response.status === 401) {
+        setShowLoginDialog(true);
+      } else {
+        toast.error('Error deleting comment, please try again.');
+      }
     }
   };
 
@@ -193,20 +223,30 @@ const RecipeCard = () => {
       fetchComments(id);
       toast.success('Reply deleted.');
     } catch (error) {
-      toast.error('Error deleting reply, please try again.');
+      if (error.response && error.response.status === 401) {
+        setShowLoginDialog(true);
+      } else {
+        toast.error('Error deleting reply, please try again.');
+      }
     }
   };
 
-  if (error) {
-    return <Typography color="error" align="center">{error}</Typography>;
-  }
+  const handleReLogin = () => {
+    localStorage.removeItem('token');
+    setToken(null);
+    navigate('/login');
+  };
 
-  if (!recipe) {
+  if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
         <CircularProgress />
       </Box>
     );
+  }
+
+  if (error) {
+    return <Typography color="error" align="center">{error}</Typography>;
   }
 
   return (
@@ -378,16 +418,14 @@ const RecipeCard = () => {
                               {new Date(reply.date).toLocaleString()}
                             </Typography>
                             {reply.userId === userIdFromToken && (
-                              <>
-                                <IconButton
-                                  size="small"
-                                  color="secondary"
-                                  onClick={() => handleDeleteReply(comment._id, reply._id)}
-                                  style={{ display: 'inline-block', marginLeft: '10px' }}
-                                >
-                                  <DeleteIcon style={{ color: '#B22222' }} />
-                                </IconButton>
-                              </>
+                              <IconButton
+                                size="small"
+                                color="secondary"
+                                onClick={() => handleDeleteReply(comment._id, reply._id)}
+                                style={{ display: 'inline-block', marginLeft: '10px' }}
+                              >
+                                <DeleteIcon style={{ color: '#B22222' }} />
+                              </IconButton>
                             )}
                           </Box>
                         ))}
@@ -400,6 +438,19 @@ const RecipeCard = () => {
           </Box>
         </CardContent>
       </Card>
+      <Dialog open={showLoginDialog} onClose={() => setShowLoginDialog(false)}>
+        <DialogTitle>Session Expired</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Your session has expired. Please log in again to continue.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleReLogin} color="primary">
+            Log In
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
